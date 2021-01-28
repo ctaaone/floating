@@ -1,27 +1,44 @@
-#include <iostream>
-#include <assert.h>
+#include <stdio.h>
+#include <string.h>
 #include <vector>
 
 using namespace std;
-#define FOR(i,n) for(int i=0;(i)<(n);i++)
 
-void printPicked(vector<int>& picked){
-    for(int i=0;i<picked.size();i++)printf("%d ",picked[i]);
-    printf("\n");
-}
+#define FOR(i,N) for(int (i)=0;(i)<(N);(i++))
 
-void pick(int n, vector<int>& picked, int toPick){
-    if (toPick==0){printPicked(picked);return;}
-    int smallest = picked.empty()?0:picked.back()+1;
-    for(int i=smallest;i<n;i++){
-        picked.push_back(i);
-        pick(n,picked,toPick-1);
-        picked.pop_back();
+int arr[10][10],count;
+
+int solve(int n,vector<int>& isPair){
+    
+    for(int i=n+1;i<10;i++){
+        if(arr[n][i]){
+            isPair[n]=1;
+            isPair[i]=1;
+            for(int j=0;j<10;j++){
+                if(isPair[j]==0){
+                    solve(j,isPair);
+                }
+            }
+        }
     }
+
 }
 
 int main(){
-    int i;vector<int> picked;
-    pick(10,picked,5);
-    return 0;
+
+    int C, N, M;vector<int> isPair(10);
+    int a,b;
+    scanf("%d",&C);
+    while(C--){
+        FOR(i,10)FOR(j,10)arr[i][j]=0;
+        FOR(i,10)isPair[i]=0; count=0;
+        scanf("%d%d",&N,&M);
+        FOR(i,M){
+            scanf("%d%d",&a,&b);
+            arr[a][b]=1;arr[b][a]=1;
+        }
+        solve(0,isPair);
+        printf("%d\n",count);
+    }
+
 }
