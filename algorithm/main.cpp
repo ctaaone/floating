@@ -1,42 +1,55 @@
 #include <stdio.h>
-#include <string.h>
 #include <vector>
 
 using namespace std;
+#define FOR(i,n) for(int i=0;i<(n);i++)
 
-#define FOR(i,N) for(int (i)=0;(i)<(N);(i++))
+int H,W;
+int pattern[4][3][2]={
+    {{0,0},{1,0},{1,1}},
+    {{0,0},{1,0},{0,1}},
+    {{0,0},{0,1},{1,1}},
+    {{0,0},{0,1},{-1,1}}
+};
 
-int arr[10][10],count,Num;
-
-void solve(int n,vector<int>& isPair){
-    int flag=0;
-    for(int i=n+1;i<Num;i++){
-        if(arr[n][i]&&isPair[i]==0){
-            isPair[n]=isPair[i]=1;
-            FOR(j,Num)if(!isPair[j])flag=1;if(!flag)count++;
-            for(int j=n+1;j<Num;j++)
-                if(!isPair[j]){solve(j,isPair);break;}
-            isPair[i]=0;
-        }
+int set(int r,int x,int y,int del,vector<vector<int>>& board){
+    int tx, ty,flag=1;
+    FOR(i,3){
+        tx=x+pattern[r][i][0];
+        ty=y+pattern[r][i][1];
+        if(tx<0||tx>=W||ty<0||ty>=H){
+            flag=0;
+        }else if((board[ty][tx]+=del)>1)flag=0;
     }
-    isPair[n]=0;
+    return flag;
 }
 
-int main(){
+int solve(vector<vector<int>>& board){
+    int x=20,y=20,ret=0;
+    FOR(i,H){
+        FOR(j,W){
+            if(board[i][j]==0){
+                x=j;y=i;break;
+            }if(x!=20)break;
+        }
+    }if(x==20)return 1;
 
-    int C, M;vector<int> isPair(10);
-    int a,b;
+    FOR(r,4){
+        if(set(r,x,y,1,board))
+            ret+=solve(board);
+        set(r,x,y,-1,board);
+    }
+    return ret;
+}
+
+
+int main(){
+    int C;char temp[21];
+    vector<vector<int>> board(20,vector<int>(20));
     scanf("%d",&C);
     while(C--){
-        FOR(i,10)FOR(j,10)arr[i][j]=0;
-        FOR(i,10)isPair[i]=0; count=0;
-        scanf("%d%d",&Num,&M);
-        FOR(i,M){
-            scanf("%d%d",&a,&b);
-            arr[a][b]=1;arr[b][a]=1;
-        }
-        solve(0,isPair);
-        printf("%d\n",count);
-    }
-
+        scanf("%d%d",&H,&W);
+        FOR(i,H){scanf("%s",temp);FOR(j,W){if(temp[j]=='.')board[i][j]=0;else board[i][j]=1;}}
+        printf("%d\n",solve(board));
+    }return 0;
 }
