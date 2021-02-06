@@ -1,57 +1,34 @@
-#include <stdio.h>
-#include <vector>
+#include "bench.h"
 
-using namespace std;
-
-#define FOR(i,n) for(int i=0;i<(n);i++)
-#define INF 99999
-
-
-vector<int> clock;
-int swi[10][5]={
-    {0,1,2,-1,-1},
-    {3,7,9,11,-1},
-    {4,10,14,15,-1},
-    {0,4,5,6,7},
-    {6,7,8,10,12},
-    {0,2,14,15,-1},
-    {3,14,15,-1,-1},
-    {4,5,7,14,15},
-    {1,2,3,4,5},
-    {3,4,5,9,13}
-};
-
-int min(int a,int b){
-    return a<b?a:b;
-}
-
-int solve(int n){
-    int ret=INF;
-    if(n==10){
-        FOR(i,16){
-            if(clock[i]!=0)return INF;
-        }
-        return 0;
-    }else{
-        FOR(i,4){
-            ret=min(solve(n+1)+i,ret);
-            FOR(j,5){
-                if(swi[n][j]==-1)continue;
-                clock[swi[n][j]]++;clock[swi[n][j]]%=4;
-            }
+void normalize(vector<int>& num){
+    num.push_back(0);
+    for(int i=0;i+1<num.size();i++){
+        if(num[i]<0){
+            int borrow=(abs(num[i]+9)/10);
+            num[i+1]-=borrow;
+            num[i]+=borrow*10;
+        }else{
+            num[i+1]+=num[i]/10;
+            num[i]%=10;
         }
     }
-    return ret;
+    while(num.back()==0&&num.size>1)num.pop_back();
+}
+
+vector<int> multiply(const vector<int>&a, const vector<int> &b){
+    vector<int> c(a.size()+b.size()+1,0);
+    for(int i=0;i<a.size();i++)
+        for(int j=0;j<b.size();j++)
+            c[i+j]+=a[i]*b[j];
+    normalize(c);
+    return c;
 }
 
 int main(){
-    int C,temp;
-    scanf("%d",&C);
-    while(C--){
-        FOR(i,16){scanf("%d",&temp);clock.push_back(temp/3%4);}
-        temp=solve(0);
-        printf("%d\n",(temp==INF?-1:temp));
-        FOR(i,16)clock.pop_back();
+    vector<int> a,b;
+    long long c,d;
+    scanf("%lld%lld",&c,&d);
+    while(c){
+        a.push_back(c%10);c/=10;
     }
-    return 0;
 }
