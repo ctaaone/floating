@@ -1,67 +1,85 @@
 #include <iostream>
+#include <vector>
+#include <string>
 
 using namespace std;
 
-int height[20000],N;
+int C, N, M;
+string members, fans;
+vector<int> m,f;
 
-int min(int a,int b){
-    return a<b?a:b;
+void normal(vector<int>&a){
+    while(a.back()==0)a.pop_back();
+}
+vector<int> addTo(vector<int>&a, vector<int>&b,int n){
+    int max_size = (a.size()+n)>b.size()?a.size()+n:b.size();
+    vector<int> c(max_size);
+    for(int i=0;i<n;i++)c.push_back((b.size()<=i?0:b[i]));
+    for(int i=n;i<max_size;i++)c.push_back((a.size()<=i?0:a[i-n])+(b.size()<=i?0:b[i]));
+    normal(c);
+    return c;
+}
+vector<int> subTo(vector<int>&a, vector<int>&b){
+    int max_size = a.size()>b.size()?a.size():b.size();
+    vector<int> c(max_size);
+    for(int i=0;i<max_size;i++)c.push_back((a.size()<=i?0:a[i])-(b.size()<=i?0:b[i]));
+    normal(c);
+    return c;
 }
 
-int base(int s,int e){//기저사례 처리하기 귀찮아서 뭉탱이로 처리
-    int max=0;
-    for(int i=s;i<e;i++){
-        if(height[i]>max)max=height[i];
-    }if(e-s>1)for(int i=s;i<e-1;i++){
-        if(min(height[i],height[i+1])*2>max)max=min(height[i],height[i+1])*2;
-    }if(e-s>2)if(min(height[s],min(height[s+1],height[s+2]))*3>max)max=min(height[s],min(height[s+1],height[s+2]))*3;
-    return max;
-}
-int getwidth(int index,int height){
-
-}
-
-int solve(int s,int e){//현재 scope에서 좌&우&pivot 포함 사각형 중 가장 큰 놈 넓이 retn [s,e)
-    if(e-s<=3)return base(s,e);
-    int pivot=s+e;pivot/=2;
-    int left=solve(s,pivot);
-    int right=solve(pivot+1,e);
-    int l=pivot-1;
-    int r=pivot+1;
-    int max=height[pivot];int width=2,floor=max;
-    while(l>=s&&r<e){
-        if(height[l]>height[r]){
-            if(floor>height[l])floor=height[l];
-            l--;
-            if(width*floor>max)max=width*floor;
-        }else {
-            if(floor>height[r])floor=height[r];
-            r++;
-            if(width*floor>max)max=width*floor;
-        }width++;
-    }while(l>=s){
-        if(floor>height[l])floor=height[l];
-        l--;
-        if(width*floor>max)max=width*floor;
-        width++;
-    }while(r<e){
-        if(floor>height[r])floor=height[r];
-        r++;
-        if(width*floor>max)max=width*floor;
-        width++;
+vector<int> mul(vector<int>&a, vector<int>b){
+    vector<int> c(a.size()+b.size(),0);
+    for(int i=0;i<b.size();i++){
+        for(int j=0;j<a.size();j++){
+            c[i+j]+=a[j]*b[i];
+        }
     }
-    if(max<left)max=left;
-    if(max<right)max=right;
-    return max;
+    if(c.back()==0)c.pop_back();
+    return c;
+}
+vector<int> karatsuba(vector<int>& a, vector<int>&b){
+    for(int i=a.size()-1;i>=0;i--)cout<<a[i];cout<<endl;
+    for(int i=b.size()-1;i>=0;i--)cout<<b[i];cout<<endl;
+    if(a.empty()||b.empty())return vector<int>(0);
+    if(a.size()<10)return mul(a,b);
+    int half=a.size()/2;
+    vector<int> a0(a.begin(),a.begin()+half),a1(a.begin()+half,a.end());
+    vector<int> b0(b.begin(),b.begin()+(half>b.size()?b.size():half)),b1(b.begin()+(half>b.size()?b.size():half),b.end());
+
+    vector<int> z0=karatsuba(a1,b1),z1=karatsuba(a0,b0);
+    vector<int> z2;
+    z2=addTo(z1,z0,0);
+    vector<int> a2=subTo(a1,a0),b2=subTo(b1,b0);
+    vector<int> res=karatsuba(a2,b2);
+    z2=subTo(z2,res);
+    res=addTo(z0,z1,half);
+    res=addTo(res,z2,half);
+    return res; 
 }
 
-int main(){
-    int C;
+
+
+int main()
+{
     cin>>C;
     while(C--){
-        cin>>N;
-        for(int i=0;i<N;i++)cin>>height[i];
-        cout<<solve(0,N)<<endl;
+        /*cin>>members;
+        cin>>fans;
+        N=members.size();
+        M=fans.size();
+        for(int i=0;i<M;i++){
+            f.push_back(fans[i]=='F'?1:0);
+            if(i<N)m.push_back(members[N-i-1]=='F'?1:0);
+        }
+        vector<int> result=karatsuba(f,m);
+        int out=0;
+        for(int i=N-1;i<2*N-1;i++){
+            if(result[i]==N)out++;
+        }
+        cout<<out<<endl;*/
+        vector<int> a={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},b={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,2};
+        vector<int> out=karatsuba(a,b);
+        for(int i=0;i<out.size();i++)cout<<out[i];       
     }
     return 0;
 }
