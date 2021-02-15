@@ -24,12 +24,11 @@ vector<int> subTo(vector<int>&a, vector<int>&b){
     return c;
 }
 
-vector<int> mul(vector<int>&a, vector<int>&b){
-    if(a.size()+b.size()==0)return vector<int>(0);
-    vector<int> c(a.size()+b.size()-1,0);
+vector<int> mul(vector<int>&a, vector<int>b){
+    vector<int> c(a.size()+b.size(),0);
     for(int i=0;i<b.size();i++){
         for(int j=0;j<a.size();j++){
-            c[i+j]+=a[j]*b[i];
+            c[i+j]+=(a[j]+b[i]>0)?1:0;
         }
     }
     return c;
@@ -66,14 +65,14 @@ int main()
         N=members.size();
         M=fans.size();
         for(int i=0;i<M;i++){
-            f.push_back(fans[i]=='M'?1:0);
-            if(i<N)m.push_back(members[N-1-i]=='M'?1:0);
+            f.push_back(fans[i]=='F'?1:0);
+            if(i<N)m.push_back(members[N-1-i]=='F'?1:0);
         }
         vector<int> result=karatsuba(f,m);
         int out=0;
         cout<<"result ";for(int i=result.size()-1;i>=0;i--)cout<<result[i];cout<<endl;
         for(int i=N-1;i<=M-1;i++){
-            if(result[i]==0)out++;
+            if(result[i]==N)out++;
         }
         cout<<out<<endl;
         while(m.size())m.pop_back();
