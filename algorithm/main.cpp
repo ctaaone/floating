@@ -3,29 +3,31 @@
 
 using namespace std;
 
+int N,M,A[101],B[101],cache[101][101];
 
-int N,arr[501]={-1},cache[501];
-
-int max(int &a, int &b){
+int max(int&a,int&b){
     return a>b?a:b;
 }
 
-int solve(int index){
-    int &ret=cache[index];
+int solve(int a,int b){
+    int ret=cache[a][b],ma=0;
     if(ret!=-1)return ret;
-    int ma=1;
-    for(int i=index+1;i<=N;i++)
-        if(arr[index]<arr[i])ma=max(ma, solve(i)+1);
-    return ret=ma;
+    for(int i=a+1;i<=N;i++){
+        for(int j=b+1;j<=M;j++){
+            if()ma=max(ma,solve(i,j));
+        }
+    }
+
 }
 
 int main(){
     int C;cin>>C;
     while(C--){
-        cin>>N;int ma=0;
-        for(int i=1;i<=N;i++)cin>>arr[i];
-        memset(cache, -1, sizeof(cache));
-        cout<<solve(0)-1<<"\n";
+        cin>>N>>M;
+        for(int i=1;i<=N;i++)cin>>A[i];
+        for(int i=1;i<=M;i++)cin>>B[i];
+        memset(cache,-1,sizeof(cache));
+        cout<<solve(0,0)-1<<endl;
     }
     return 0;
 }
