@@ -10,12 +10,16 @@ int max(int&a,int&b){
 }
 
 int solve(int a,int b){
+    if(a==N&&b==M){
+        if(A[a]==B[b])return 1;return 2;
+    }
     int ret=cache[a][b],ma=0;
     if(ret!=-1)return ret;
     for(int i=a+1;i<=N;i++){
-        for(int j=b+1;j<=M;j++){
-            if()ma=max(ma,solve(i,j));
-        }
+        if(A[i]>A[a]&&A[i]!=B[b])ma=max(solve(i,b)+1,ma);
+    }
+    for(int j=b+1;j<=M;j++){
+        if(B[j]>B[b]&&B[j]!=A[a])ma=max(ma,solve(a,j)+1);
     }
 
 }
