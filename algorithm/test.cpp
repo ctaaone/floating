@@ -38,7 +38,7 @@ int main(){
         for(int i=0;i<n;i++)cin>>A[i];
         for(int i=0;i<m;i++)cin>>B[i];
         memset(cache,-1,sizeof(cache));
-        cout<<jlis(0,0)-1<<endl;
+        cout<<jlis(-1,-1)-2<<endl;
     }
     return 0;
 }
