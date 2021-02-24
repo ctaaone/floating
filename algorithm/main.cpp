@@ -1,56 +1,49 @@
 #include <iostream>
-#include <memory.h>
 #include <vector>
+#include <memory.h>
+#include <algorithm>
 
 using namespace std;
-
+void pa(vector<int>&a){
+    for(int i=a.size()-1;i>=0;i--)cout<<a[i]<<" ";cout<<endl;
+}
 int min(int &a, int &b){
     return a<b?a:b;
 }
-void pa(vector<int> &arr){
-    for(int i=0;i<arr.size();i++)cout<<arr[i]<<" ";cout<<endl;
+int N,S,cache[100][10],cache2[1000][1000],INF=(int)2e9;
+int eval(vector<int>&arr, int s, int e){
+    if(e>arr.size())return INF;
+    int &ret=cache2[s][e-1];if(ret!=-1)return ret;
+    int mi=INF;
+    for(int i=1;i<=1000;i++){
+        int temp=0;
+        for(int j=s;j<e;j++){
+            temp+=(arr[j]-i)*(arr[j]-i);
+        }mi=min(mi,temp);
+    }return ret=mi;
 }
-vector<int> strtov(char * str){
-    vector<int> ret;int i=0;
-    while(str[i]){
-        ret.push_back(str[i++]-'0');
-    }return ret;
-}
-int eval(int in, vector<int>& arr,int num){
-    vector<int> a(arr.begin()+in, arr.begin()+in+num);
-    int sub=a[1]-a[0],subflag=1;
-    for(int i=1;i<a.size();i++){
-        if(sub!=a[i]-a[i-1])subflag=0;
-    }
-    if(subflag){
-        if(sub==0)return 1;
-        if(sub==1||sub==-1)return 2;
-        return 5;
-    }
-    int alt1=a[0], alt2=a[1],altflag=1;
-    for(int i=0;i<a.size();i+=2)if(alt1!=a[i])altflag=0;
-    for(int i=1;i<a.size();i+=2)if(alt2!=a[i])altflag=0;
-    if(altflag)return 4;
-    return 10;
-}
-int N,cache[10000],inf=9999999;
-int solve(int in, vector<int>& arr){
-    if(in>N)return inf;
-    if(in==N)return 0;
-    int &ret=cache[in];
-    if(ret!=-1)return ret;
-    int mi=inf;
-    for(int i=3;i<=5;i++){
-        mi=min(mi, eval(in,arr,i)+solve(in+i,arr));
-        //printf("in%d i%d mi%d\n",in,i,mi);
+int solve(vector<int>&arr, int in, int n){
+    if(in>=arr.size())return 0;
+    int &ret=cache[in][n];if(ret!=-1)return ret;
+    if(n==0)return ret=eval(arr, in, arr.size());int mi=INF;
+    for(int i=in+1;i<=arr.size();i++){
+        mi=min(mi,eval(arr,in,i)+solve(arr,i,n-1));
     }
     return ret=mi;
 }
+int comp(int&a, int&b){
+    return a>b;
+}
 int main(){
-    int C;cin>>C;char str[10001];
+    int C;cin>>C;
     while(C--){
-        scanf("%s",str);
-        vector<int> arr=strtov(str);N=arr.size();memset(cache,-1,sizeof(cache));
-        cout<<solve(0,arr)<<endl;
-    }return 0;
+        cin>>N>>S;int temp;vector<int> arr;
+        for(int i=0;i<N;i++){
+            cin>>temp;arr.push_back(temp);
+        }
+        sort(arr.begin(), arr.end(),comp);
+        memset(cache,-1,sizeof(cache));memset(cache2, -1, sizeof(cache2));
+        cout<<solve(arr, 0, S-1)<<endl;
+    }
+    return 0;
 }
