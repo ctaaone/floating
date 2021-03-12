@@ -4,30 +4,19 @@
 using namespace std;
 
 
-int N,arr[100][100],cache1[100][100],cache2[100][100][100001],M;
+int N,M;double cache[2001][1000];
 
-int getMax(int x, int y){
-    if(y==N-1)return arr[y][x];
-    int& ret=cache1[y][x];
+double solve(int sum, int n){
+    double &ret=cache[sum][n];
     if(ret!=-1)return ret;
-    int a=getMax(x,y+1),b=getMax(x+1,y+1);
-    if(a>b)return ret=a+arr[y][x];
-    return ret=b+arr[y][x];
-}
-int solve(int x, int y, int sum, int num){
-    int &ret=cache2[y][x][num];
-    if(ret!=-1)return ret;
-    if(y==N-1)return ret=(arr[y][x]==M?1:0);
-    return ret=solve(x,y+1,sum+arr[y][x],num)+solve(x+1,y+1);
+    if(n==M-1)return ret=(sum+1>=N?0.25:0)+(sum+2>=N?0.75:0);
+    return ret=(solve(sum+1,n+1)*0.25+solve(sum+2,n+1)*0.75);
 }
 
 int main(){
     int C;cin>>C;
     while(C--){
-        cin>>N;
-        for(int i=0;i<N;i++)for(int j=0;j<=i;j++)cin>>arr[i][j];
-        memset(cache1, -1, sizeof(cache1));memset(cache2, -1, sizeof(cache2));
-        M=getMax(0,0);
-        cout<<solve(0,0)<<endl;
+        cin>>N>>M;for(int i=0;i<2001;i++)for(int j=0;j<1000;j++)cache[i][j]=-1;
+        printf("%.10lf\n",solve(0,0));
     }
 }
