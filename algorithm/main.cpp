@@ -3,20 +3,23 @@
 
 using namespace std;
 
+int N,cache[101][101];
 
-int N,M;double cache[2001][1000];
-
-double solve(int sum, int n){
-    double &ret=cache[sum][n];
-    if(ret!=-1)return ret;
-    if(n==M-1)return ret=(sum+1>=N?0.25:0)+(sum+2>=N?0.75:0);
-    return ret=(solve(sum+1,n+1)*0.25+solve(sum+2,n+1)*0.75);
+int solve(int n,int pre){
+    if(n<=0)return 0;if(n==1)return 1;
+    int &ret=cache[n][pre];if(ret!=-1)return ret;ret=0;
+    if(pre==0)for(int i=1;i<=n;i++){
+        ret+=solve(n-i,i);ret%=10000000;
+    }
+    else for(int i=1;i<=n;i++){
+        ret+=(solve(n-i,i)*(pre+i-1))%10000000;ret%=10000000;
+    }
+    return ret;
 }
 
 int main(){
-    int C;cin>>C;
+    int C;cin>>C;memset(cache,-1,sizeof(cache));
     while(C--){
-        cin>>N>>M;for(int i=0;i<2001;i++)for(int j=0;j<1000;j++)cache[i][j]=-1;
-        printf("%.10lf\n",solve(0,0));
+        cin>>N;cout<<solve(N,0)<<endl;
     }
 }
