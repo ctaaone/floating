@@ -1,25 +1,51 @@
 #include <iostream>
 #include <memory.h>
+#include <vector>
 
 using namespace std;
 
-int N,cache[101][101];
+int N,D,P,arr[50][50];
+double p1[50],p2[50],pa[50][50];
 
-int solve(int n,int pre){
-    if(n<=0)return 0;if(n==1)return 1;
-    int &ret=cache[n][pre];if(ret!=-1)return ret;ret=0;
-    if(pre==0)for(int i=1;i<=n;i++){
-        ret+=solve(n-i,i);ret%=10000000;
+void getpa(){
+    for(int i=0;i<N;i++){
+        int count=0;
+        for(int j=0;j<N;j++){
+            if(arr[i][j])count++;
+        }
+        if(count==0)continue;
+        for(int j=0;j<N;j++){
+            if(arr[i][j])pa[i][j]=1.0/count;
+        }
     }
-    else for(int i=1;i<=n;i++){
-        ret+=(solve(n-i,i)*(pre+i-1))%10000000;ret%=10000000;
+}
+void solve(){
+    for(int d=0;d<D;d++){
+        for(int i=0;i<N;i++){
+            if(p1[i]==0)continue;
+            for(int j=0;j<N;j++){
+                if(arr[i][j])p2[j]+=pa[i][j]*p1[i];
+            }
+        }
+        for(int i=0;i<N;i++)p1[i]=p2[i];
+        memset(p2,0,sizeof(p2));
     }
-    return ret;
 }
 
 int main(){
-    int C;cin>>C;memset(cache,-1,sizeof(cache));
+    int C;cin>>C;
     while(C--){
-        cin>>N;cout<<solve(N,0)<<endl;
+        vector<int> li;int in;
+        cin>>N>>D>>P;
+        for(int i=0;i<N;i++)for(int j=0;j<N;j++)cin>>arr[i][j];memset(p1,0,sizeof(p1));memset(p2,0,sizeof(p2));memset(pa,0,sizeof(pa));
+        p1[P]=1;getpa();solve();
+        cin>>in;
+        for(int i=0;i<in;i++){
+            int temp;cin>>temp;
+            li.push_back(temp);
+        }
+        for(int i=0;i<in;i++){
+            printf("%.8lf ",p1[li[i]]);
+        }printf("\n");
     }
 }
