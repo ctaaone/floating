@@ -14,8 +14,19 @@ int solve(int w, int in){
     int a,b;
     a=solve(w-weight[in],in+1)+des[in];
     b=solve(w,in+1);
-    if(a>b){path.push_back(in);return ret=a;}
+    if(a>b)return ret=a;
     return ret=b;
+}
+void getPath(int d){
+    int resw=W, resd=d;
+    for(int i=0;i<N-1;i++){
+        if(resw-weight[i]>=0 && cache[resw-weight[i]][i+1]==resd-des[i]){
+            path.push_back(i);
+            resw -= weight[i];
+            resd -= des[i];
+        }
+    }
+    if(resd>0)path.push_back(N-1);
 }
 
 int main(){
@@ -27,8 +38,13 @@ int main(){
             cin>>t1>>t2>>t3;
             list.push_back(t1);weight.push_back(t2);des.push_back(t3);
         }
-        printf("%d",solve(W,0));printf(" %d\n",(int)path.size());
-        while(!path.empty()){cout<<list[path.back()]<<endl;path.pop_back();}
+        
+        int temp=solve(W,0);getPath(temp);
+        
+        printf("%d",temp);  printf(" %d\n",(int)path.size());
+        for(int i=0;i<path.size();i++)cout<<list[path[i]]<<endl;
+        
+        while(!path.empty())path.pop_back();
         for(int i=0;i<N;i++){list.pop_back();weight.pop_back();des.pop_back();}
     }
 }
