@@ -1,50 +1,86 @@
 #include <iostream>
 #include <vector>
-#include <string>
+#include <string.h>
 #include <memory.h>
 
 using namespace std;
 
-int N,W,cache[1001][100];
-vector<string> list;vector<int> weight;vector<int> des;vector<int> path;
-int solve(int w, int in){
-    if(in==N)return 0;
-    int &ret=cache[w][in];if(ret!=-1)return ret;
-    if(w-weight[in]<0){return ret=solve(w,in+1);}
-    int a,b;
-    a=solve(w-weight[in],in+1)+des[in];
-    b=solve(w,in+1);
-    if(a>b)return ret=a;
-    return ret=b;
+int M,Q,N;double F[500],R[500][500],C[500][500];double cache[500][101];
+char oWord[500][11],word[100][11];
+int path[100];
+
+
+int getIn(char * str){
+    for(int i=0;i<M;i++){
+        if(strcmp(str,oWord[i])==0)return i;
+    }
 }
-void getPath(int d){
-    int resw=W, resd=d;
-    for(int i=0;i<N-1;i++){
-        if(resw-weight[i]>=0 && cache[resw-weight[i]][i+1]==resd-des[i]){
-            path.push_back(i);
-            resw -= weight[i];
-            resd -= des[i];
+
+void getPath(){
+    memset(path, -1, sizeof(path));
+    int tWord=0;int cur;
+    for(int i=0;i<N;i++){
+        cur = getIn(word[i]);
+        for(int j=0;j<M;j++){
+            if(cache[tWord][i]==cache[j][i+1]*C[j][cur]*(i==0?F[j]:R[tWord][j])){
+                path[i]=j;tWord=j;break;
+            }
         }
     }
-    if(resd>0)path.push_back(N-1);
+}
+
+
+double solve(int preW, int in){
+    if(in==N)return cache[preW][in]=1.0;
+    if(preW==-1){
+        double &ret=cache[0][in];
+        double temp;int cur=getIn(word[in]);
+        ret=0;
+        for(int i=0;i<M;i++){
+            if(F[i]==0||C[i][cur]==0)continue;
+            temp=F[i]*solve(i,in+1)*C[i][cur];
+            if(ret<temp){
+                path[in]=i;
+                ret=temp;
+            }
+        }
+        return ret;
+    }
+    double &ret=cache[preW][in];if(ret!=-1)return ret;
+    double temp;int cur=getIn(word[in]);
+    ret=0;
+    for(int i=0;i<M;i++){
+        if(R[preW][i]==0||C[i][cur]==0)continue;
+        temp=R[preW][i]*solve(i,in+1)*C[i][cur];
+        if(ret<temp){
+            if(path[in-1]==preW)path[in]=i;
+            ret=temp;
+        }
+    }
+    return ret;
 }
 
 int main(){
-    int C;cin>>C;
-    while(C--){
-        cin>>N>>W;memset(cache,-1,sizeof(cache));
-        for(int i=0;i<N;i++){
-            string t1;int t2,t3;
-            cin>>t1>>t2>>t3;
-            list.push_back(t1);weight.push_back(t2);des.push_back(t3);
-        }
-        
-        int temp=solve(W,0);getPath(temp);
-        
-        printf("%d",temp);  printf(" %d\n",(int)path.size());
-        for(int i=0;i<path.size();i++)cout<<list[path[i]]<<endl;
-        
-        while(!path.empty())path.pop_back();
-        for(int i=0;i<N;i++){list.pop_back();weight.pop_back();des.pop_back();}
+    cin>>M>>Q;string temp;
+    for(int i=0;i<M;i++)
+        scanf("%s",oWord[i]);
+    for(int i=0;i<M;i++)
+        scanf("%lf",&F[i]);
+    for(int i=0;i<M;i++)
+        for(int j=0;j<M;j++)
+            scanf("%lf",&R[i][j]);
+    for(int i=0;i<M;i++)
+        for(int j=0;j<M;j++)
+            scanf("%lf",&C[i][j]);
+
+    while(Q--){
+        scanf("%d",&N);
+        for(int i=0;i<N;i++)scanf("%s",word[i]);
+        for(int i=0;i<500;i++)for(int j=0;j<101;j++)cache[i][j]=-1;
+        //printf("%lf\n",solve(-1,0));getPath();
+        solve(-1,0);getPath();
+        for(int i=0;i<N;i++)printf("%s ",oWord[path[i]]);printf("\n");
     }
+
+    return 0;
 }
