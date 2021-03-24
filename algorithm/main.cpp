@@ -8,8 +8,8 @@ using namespace std;
 
 int M,Q,N;double F[500],R[500][500],C[500][500];double cache[500][101];
 char oWord[500][11],word[100][11];
-int path[500][101],rpath[101];
-double INF = -1e100;
+int path[100];
+double INF = -1.8e100;
 
 int getIn(char * str){
     for(int i=0;i<M;i++){
@@ -18,11 +18,16 @@ int getIn(char * str){
 }
 
 void getPath(){
-    int cur = path[0][0];
-    rpath[0] = cur;
-    for(int i=1;i<N;i++){
-        cur = path[cur][i];
-        rpath[i] = cur;
+    memset(path, -1, sizeof(path));
+    int tWord=0;int cur;
+    for(int i=0;i<N;i++){
+        cur = getIn(word[i]);
+        for(int j=0;j<M;j++){
+            if(C[j][cur]==2||(i==0&&F[j]==2)||(i!=0&&R[tWord][j]==2)||cache[j][i+1]==1)continue;
+            if(cache[tWord][i]==cache[j][i+1]+C[j][cur]+(i==0?F[j]:R[tWord][j])){
+                path[i]=j;tWord=j;break;
+            }
+        }
     }
 }
 
@@ -38,7 +43,6 @@ double solve(int preW, int in){
             temp=F[i]+solve(i,in+1)+C[i][cur];
             if(ret<temp){
                 ret=temp;
-                path[0][in]=i;
             }
         }
         return ret;
@@ -51,7 +55,6 @@ double solve(int preW, int in){
         temp=R[preW][i]+solve(i,in+1)+C[i][cur];
         if(ret<temp){
             ret=temp;
-            path[preW][in]=i;
         }
     }
     return ret;
@@ -86,7 +89,7 @@ int main(){
         for(int i=0;i<500;i++)for(int j=0;j<101;j++)cache[i][j]=1;
         //printf("%lf\n",solve(-1,0));getPath();
         solve(-1,0);getPath();
-        for(int i=0;i<N;i++)printf("%s ",oWord[rpath[i]]);printf("\n");
+        for(int i=0;i<N;i++)printf("%s ",oWord[path[i]]);printf("\n");
     }
 
     return 0;
