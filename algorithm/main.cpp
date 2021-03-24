@@ -24,11 +24,12 @@ void getPath(){
         cur = getIn(word[i]);
         for(int j=0;j<M;j++){
             if(C[j][cur]==2||(i==0&&F[j]==2)||(i!=0&&R[tWord][j]==2)||cache[j][i+1]==1)continue;
-            if(cache[tWord][i]==cache[j][i+1]+C[j][cur]+(i==0?F[j]:R[tWord][j])){
+            if(ceil((cache[tWord][i])*10)==ceil((cache[j][i+1]+C[j][cur]+(i==0?F[j]:R[tWord][j]))*10)){
+                //printf("#%d:%d  %lf %lf %lf\n",i,j,cache[tWord][i],cache[j][i+1],C[j][cur]);
                 path[i]=j;tWord=j;break;
             }
         }
-    }
+    }//printf("\n");
 }
 
 
