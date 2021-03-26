@@ -1,38 +1,42 @@
 #include <iostream>
 #include <memory.h>
-#include <string>
+#include <vector>
 
 using namespace std;
 
+int N,K,arr[501]={0},cache[501];
+int count[501];
 
-int N,M,K;int cache[101][101];int INF = 1e9+1;
-
-int solve(int n, int m){
-    int &ret = cache[n][m]; if(ret != -1)return ret;
-    if(n==0 && m==0)return ret = 1;
-    if(n==0) return ret = solve(0,m-1);
-    if(m==0) return ret = solve(n-1,0);
-    int temp=(solve(n-1,m) + solve(n,m-1));
-    return ret = temp>INF?INF:temp;
+int max(int &a, int &b){
+    return a>b?a:b;
 }
 
-string getR(int n, int m, int k){
-    string ret;
-    if(n==0) {for(int i=0;i<m;i++){ret = ret + "o";}return ret;};
-    if(m==0) {for(int i=0;i<n;i++){ret = ret + "-";}return ret;};
-    if(k <= solve(n-1,m)){
-        return ret = "-" + getR(n-1,m,k);
+int getLIS(int n){ //count from 1
+    int &ret = cache[n]; if(ret != -1)return ret;
+    if(n==N)return ret = 1;
+    for(int i=n+1;i<=N;i++){
+        if(arr[n]<arr[i])
+        ret = max(ret, getLIS(i) + 1);
     }
-    else{
-        return ret = "o" + getR(n,m-1,k-solve(n-1,m));
-    }
+    for(int i=n+1;i<=N;i++)
+        if(ret == cache[i] + 1)count[i]+=1;
+    return ret;
 }
 
-int main(){
-    int C;cin>>C;memset(cache,-1,sizeof(cache));
-    while(C--){
-        cin>>N>>M>>K;
-        cout<<getR(N,M,K)<<endl; 
-    }
+int getC(int in){
+
     return 0;
+}
+void pv(vector<int> &r){
+    for(int i=0;i<r.size();i++)cout<<r[i]<<" ";cout<<endl;
+}
+int main(){
+    int C;cin>>C;
+    while(C--){
+        cin>>N>>K;memset(cache, -1, sizeof(cache));memset(count, 0, sizeof(count));
+        for(int i=1;i<=N;i++)cin>>arr[i];
+        getLIS(0);
+        vector<int> r;
+        getC(0);cout<<cache[0]-1<<endl;pv(r);
+    }
 }
