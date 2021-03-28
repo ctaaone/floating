@@ -2,13 +2,15 @@
 
 using namespace std;
 
-int N,P,I;
+long long E;int M;
+
+
 
 int main(){
     int C;cin>>C;
     while(C--){
-        cin>>N>>P>>I;
-        
+        scanf("%lld",&E);cin>>M;
+
     }
     return 0;
 }
