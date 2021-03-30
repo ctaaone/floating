@@ -1,44 +1,49 @@
 #include <iostream>
+#include <string>
+#include <vector>
 #include <memory.h>
 
 using namespace std;
 
-long long E;int M, I, cache[20][1<<15][2];
-int MOD = 1e9 + 7;
+int K,cache[1<<16][15],choice[15][15];vector<string> str;
 
-int getL(int in){ //count from 1
-    long long temp = E;
-    while(--in!=0){
-        temp/=10;
-    }return temp%10;
+void order(){
+    string temp;
+    for(int i=0;i<K;i++){
+        temp = str[i];
+        for(int j=i+1;j<K;j++)
+            if(temp == str[j]){str.erase(str.begin()+j);K--;j--;}
+    }
+}
+int appN(int a, int b){
+
+}
+int min(int &a, int &b){
+    return a<b?a:b;
 }
 
-int solve(int mod, int visit, int under, int in){
-    int index[10]; memset(index, 0, sizeof(index));
-    int &ret = cache[mod][visit][under]; if(ret != -1) return ret;
-    if(visit == 1<<I-1) return ret = (((mod % M == 0)&&(under == 1)) ? 1 : 0);
-    ret = 0;
-    for(int i=0;i<I;i++){
-        int tu = under;
-        if(((1<<i)&visit)==0 && (tu==1 || getL(in)>=getL(i+1))){
-            if(index[getL(i+1)]==1)continue;
-            index[getL(i+1)]=1;
-            if(getL(in)>getL(i+1))tu = 1;
-            ret += solve((mod*10+getL(i+1))%M,(1<<i)|visit,tu,in-1);
-            ret %= MOD;
+int minLen(int used, int cur){
+    int &ret = cache[used][cur]; if(ret != -1)return ret;
+    if(used == (1<<K) - 1)return ret = 0;
+    ret = 0;int temp;
+    for(int i=0;i<K;i++){
+        if( ((1<<i)&used) == 1)continue;
+        temp = appN(cur,i)+minLen(used|(1<<i),i);
+        if(ret > temp){
+            ret = temp;
         }
     }
     return ret;
 }
 
 int main(){
-    int C;cin>>C;long long temp;
+    int C;cin>>C;
     while(C--){
-        scanf("%lld%d",&E,&M);
-        memset(cache, -1, sizeof(cache));
-        temp = E;
-        for(I=0;temp;temp/=10)I++;
-        cout<<solve(0,0,0,I)<<endl;
-    }
-    return 0;
+        cin>>K;string temp;memset(cache, -1, sizeof(cache));memset(choice,-1,sizeof(choice));
+        for(int i=0;i<K;i++){cin>>temp;str.push_back(temp);}order();
+
+        for(int i=0;i<K;i++)minLen(1<<i,i);
+
+        while(!str.empty())str.pop_back();
+    }return 0;
 }
