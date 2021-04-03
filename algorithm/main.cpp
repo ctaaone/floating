@@ -55,9 +55,20 @@ int appN(int a, int b){
 
 void getPath(int used){
     int cur = 0;
-    for(int i=0;i<k;i++){
-        
+    for(int i=0;i<K;i++){
+        if(used&(1<<i)) continue;
+        if(cache[used|(1<<cur)][cur] == -1 || cache[used|(1<<cur)][cur] + str[cur].size() > cache[used|(1<<i)][i] + str[i].size()) cur = i;
     }
+    cout<<str[cur];
+    used |= (1<<cur);
+    cur = choice[used][cur];
+
+    for(int i=1;i<maxIn-1;i++){
+        used |= (1<<cur);
+        for(int j=0;j<choiceLen[used][cur];j++)cout<<str[cur][str[cur].size() - choiceLen[used][cur] + j];
+        cur = choice[used][cur];
+    }
+    cout<<endl;
 }
 
 int minLen(int used, int cur, int in){
@@ -85,7 +96,7 @@ int main(){
         for(int i=0;i<K;i++){cin>>temp;str.push_back(temp);}
         int used = order();
 
-        for(int i=0;i<K;i++)minLen(used|(1<<i),i,0);
+        for(int i=0;i<K;i++){if(used&(1<<i))continue; minLen(used|(1<<i),i,0);}
         getPath(used);
 
         while(!str.empty())str.pop_back();
