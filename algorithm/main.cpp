@@ -1,112 +1,86 @@
 #include <iostream>
-#include <string>
-#include <vector>
 #include <memory.h>
-#include <assert.h>
-#include <stdlib.h>
+
 
 using namespace std;
 
-int K,cache[1<<16][15],choice[1<<16][15],choiceLen[1<<16][15],INF = 2e9,maxIn;vector<string> str;
+char board[3][3];
+int stat[19683];
 
-
-int order(){
-    string temp;
-    int used=0;
-    for(int i=0;i<K;i++){
-        if(used&(1<<i))continue;
-        for(int j=i+1;j<K;j++){
-            if(used&(1<<i)) break;
-            if(used&(1<<j)) continue;
-            
-            string a,b;
-            if(str[i].size()>str[j].size()){a=str[i];b=str[j];}
-            else {a=str[j];b=str[i];}
-
-            for(int k=0;k<=a.size()-b.size();k++){
-                int flag=1;
-                for(int l=0;l<b.size();l++){
-                    if(a[k+l]!=b[l]){
-                        flag=0;break;
-                    }
-                }
-                if(flag){
-                    if(str[i].size() < str[j].size()){
-                        used |= (1<<i); break;
-                    }
-                    used |= (1<<j); break;
-                }
-            }
+int btos(char ** cur){
+    int ret=0;
+    for(int i=0;i<3;i++){
+        for(int j=0;j<3;j++){
+            if(cur[i][j] == 'o')ret+=1;
+            else if(cur[i][j] == 'x')ret+=2;
+            ret*=3;
         }
-    }
-    return used;
-}
-int appN(int a, int b){
-    string A = str[a], B = str[b];
-    int isMatch, ret = B.size();
-    for(int k=(A.size()<B.size()?A.size():B.size());k>0;k--){
-        isMatch = 1;
-        for(int i=0;i<k;i++){
-            if(A[A.size() - k + i] != B[i]) {isMatch = 0; break;}
-        }
-        if(isMatch){ret -= k;break;}
     }
     return ret;
 }
-
-void getPath(int used){
-    int cur = 0;
-    for(int i=0;i<K;i++){
-        if(used&(1<<i)) continue;
-        if(cache[used|(1<<cur)][cur] == -1 || cache[used|(1<<cur)][cur] + str[cur].size() > cache[used|(1<<i)][i] + str[i].size()) cur = i;
-    }
-
-    used |= 1<<cur;
-    cout<<str[cur];
-    
-    //printf("#%d\n",maxIn);
-    for(int i=0;i<maxIn;i++){
-        int target = choice[used][cur];
-        //printf("#choiceLen %d, target %d\n",choiceLen[used][cur], target);
-        for(int j=0;j<choiceLen[used][cur];j++)cout<<str[target][str[target].size() - choiceLen[used][cur] + j];
-        cur = choice[used][cur];
-        used |= 1<<cur;
-    }
-
-    cout<<endl;
-}
-
-int minLen(int used, int cur, int in){
-    if(in>maxIn)maxIn = in;
-    int &ret = cache[used][cur]; if(ret != -1)return ret;
-    if(used == (1<<K) - 1)return ret = 0;
-    ret = INF;int temp;
-    for(int i=0;i<K;i++){
-        if((1<<i)&used)continue;
-        temp = appN(cur,i) + minLen(used|(1<<i),i,in+1);
-        if(ret > temp){
-            ret = temp;
-            choice[used][cur] = i;
-            choiceLen[used][cur] = temp - minLen(used|(1<<i), i, in+1);
+char turn(char ** cur){
+    int x=0, o=0;
+    for(int i=0;i<3;i++){
+        for(int j=0;j<3;j++){
+            if(cur[i][j] == 'o')o++;
+            else x++;
         }
     }
-    //if(in == 0)printf("#%d %d\n",ret, cur);
+    if(o==x)return 'x';
+    return 'o';
+}
+int check(char ** cur, char t){
+    for(int i=0;i<3;i++){
+        if(cur[i][0]==cur[i][1]&&cur[i][1]==cur[i][2]){
+            if(cur[i][0]==t)return 1;
+            return -1;
+        }
+    }
+    for(int i=0;i<3;i++){
+        if(cur[0][i]==cur[1][i]&&cur[1][i]==cur[2][i]){
+            if(cur[0][i]==t)return 1;
+            return -1;
+        }
+    }
+    if(cur[0][0]==cur[1][1]&&cur[1][1]==cur[2][2]){
+            if(cur[0][0]==t)return 1;
+            return -1;
+    }
+    if(cur[0][2]==cur[1][1]&&cur[1][1]==cur[2][0]){
+            if(cur[0][2]==t)return 1;
+            return -1;
+    }
+    return 0;
+}
+int max(int &a, int &b){
+    return a>b?a:b;
+}
+
+int canWin(char ** cur){
+    int st = btos(cur);
+    int &ret = stat[st]; if(ret != -2)return ret;
+    char t = turn(cur);
+    ret = -1;
+    int c = check(cur, t);
+    if(c != 0)return c;
+
+    for(int i=0;i<3;i++){
+        for(int j=0;j<3;j++){
+            if(cur[i][j]!='.')continue;
+            cur[i][j] = t;
+            max(canWin(cur), ret);
+            cur[i][j] = '.';
+        }
+    }
     return ret;
 }
 
 int main(){
-    int C;cin>>C;
+    int C; cin>>C;memset(stat, -2, sizeof(stat));
     while(C--){
-        cin>>K;string temp;memset(cache, -1, sizeof(cache));memset(choice,-1,sizeof(choice));
-        memset(choiceLen, 0, sizeof(choiceLen)); maxIn = 0;
-        for(int i=0;i<K;i++){cin>>temp; str.push_back(temp);}
+        for(int i=0;i<3;i++)scanf("%s",board[i]);
 
-        int used = order();
-        
-        for(int i=0;i<K;i++){if(used&(1<<i))continue; minLen(used|(1<<i),i,0);}
 
-        getPath(used);
-        
-        while(!str.empty())str.pop_back();
-    }return 0;
+    }
+    return 0;
 }
