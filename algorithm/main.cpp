@@ -6,7 +6,7 @@ using namespace std;
 int N,M,A[101],B[101],cache[101][101];
 
 int max(int&a,int&b){
-    return a>b?a:b;
+    return a>b?a:b;aaaaa
 }
 
 int solve(int a,int b){
