@@ -19,9 +19,9 @@ void solve(vector<vector<double>>& RM, vector<vector<double>>& P){
 			for(int c=0;c<N;c++){  //Current music index
 				next = r; cur = c;
 				P[(k+len[cur])%6][next] += P[k%6][cur] * RM[next][cur];
-				for(int i=0;i<N;i++)P[(k+5)%6][i] = 0;
 			}
 		}
+		for(int i=0;i<N;i++)P[(k+5)%6][i] = 0;
 		k++;
 	}
 	while(k<K){ //Wrap-up rotation
