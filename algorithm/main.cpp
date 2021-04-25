@@ -8,35 +8,43 @@
 using namespace std;
 
 
+
 int N, K, M;
-int len[50],list[50];
+int len[50],list[10];
 
 void solve(vector<vector<double>>& RM, vector<vector<double>>& P){
 	int k = 0;
 	int next, cur;
-	while(k <= K-4){ //Nomall rotation
+	
+	while(k<4){ //Initial rotation
 		for(int r=0;r<N;r++){  //Next music index
 			for(int c=0;c<N;c++){  //Current music index
 				next = r; cur = c;
-				P[(k+len[cur])%6][next] += P[k%6][cur] * RM[next][cur];
-			}
-		}
-		for(int i=0;i<N;i++)P[(k+5)%6][i] = 0;
-		k++;
-	}
-	while(k<K){ //Wrap-up rotation
-		for(int r=0;r<N;r++){  //Next music index
-			for(int c=0;c<N;c++){  //Current music index
-				next = r; cur = c;
-				if(k+len[cur]>K)continue;
-				P[(k+len[cur])%6][next] += P[k%6][cur] * RM[next][cur];
+				if(k+len[cur] < 4){
+					P[k+len[cur]][next] += P[k][cur] * RM[cur][next];
+				}
 			}
 		}
 		k++;
 	}
-	for(int i=0;i<N;i++){
-		for(int j=1;j<len[N];j++)P[K%6][i] += P[(K-j+6)%6][i];
+	if(K<4){
+		for(int i=0;i<N;i++){
+			for(int j=K-1;j>=0&&len[i]>K-j;j--)P[K][i] += P[j][i];
+		}
+		return ;
 	}
+	vector<vector<double>> M(4*N, vector<double>(4*N));
+	for(int i=0;i<3*N;i++)
+		M[i][i+N] = 1.0;
+	for(int r=3*N;r<4*N;r++){
+		for(int k1=0;k1<4;k1++){
+			for(int c=0;c<N;c++){
+				next = r; cur = c;
+				if(len[cur]+k1==4) M[r][k1*c] = P[k1][cur] * RM[cur][next];
+			}
+		}
+	}	//M initialize
+	
 }
 
 
@@ -45,15 +53,15 @@ int main(){
 	while(C--){
 		cin>>N>>K>>M;
 		vector<vector<double>> RM(N,vector<double>(N));	//Relation matrix NxN
-		vector<vector<double>> P(6,vector<double>(N)); //Result matrix   6xN
+		vector<vector<double>> P(4,vector<double>(N));  //Result matrix   4xN
 		for(int i=0;i<N;i++)scanf("%d",len+i);
-		for(int i=0;i<N;i++)for(int j=0;j<N;j++)scanf("%lf", &RM[j][i]); //x=y symmetry
-		for(int i=0;i<N;i++)scanf("%d",list+i);
-		P[0][0] = 1.0;
+		for(int i=0;i<N;i++)for(int j=0;j<N;j++)scanf("%lf", &RM[i][j]);
+		for(int i=0;i<M;i++)scanf("%d",list+i);
 
 		solve(RM, P);
 
-		for(int i=0;i<N;i++)printf("%.8lf ", P[K%6][list[i]]);
+
+		for(int i=0;i<M;i++)printf("%.8lf ", P[K][list[i]]);
 		printf("\n");
 
 	}
