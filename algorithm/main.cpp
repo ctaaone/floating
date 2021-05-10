@@ -27,8 +27,10 @@ vector<vector<double>> multi(vector<vector<double>> A, vector<vector<double>> B)
 
 vector<vector<double>> pow(int n, vector<vector<double>> M){
 	if(n == 1) return M;
-	if(n%2==0)
-		return multi(pow(n/2, M), pow(n/2, M));
+	if(n%2==0){
+		vector<vector<double>> temp = pow(n/2,M);	//Got wrong here
+		return multi(temp, temp);
+	}
 	return multi(pow(n-1, M), M);
 }
 void printV(vector<vector<double>> &A){
@@ -38,6 +40,16 @@ void printV(vector<vector<double>> &A){
 			printf("%.3lf ",A[i][j]);
 		}printf("\n");
 	}
+}
+vector<vector<double>> nMulti(vector<vector<double>> A, vector<vector<double>> B){
+	int R = A.size();
+	vector<vector<double>> res(B.size(), vector<double>(B[0].size()));
+	for(int r=0;r<R;r++){
+			for(int l=0;l<R;l++){
+				res[r/N][r%N] += A[r][l] * B[l/N][l%N];
+			}
+	}
+	return res;
 }
 
 void solve(vector<vector<double>>& RM, vector<vector<double>>& P){
@@ -57,7 +69,7 @@ void solve(vector<vector<double>>& RM, vector<vector<double>>& P){
 	}
 	if(K<4){
 		for(int i=0;i<N;i++){
-			for(int j=K-1;j>=0&&len[i]>K-j;j--)P[K][i] += P[j][i];
+			for(int j=K-1;j>=0&&K-j+1<=len[i];j--)P[K][i] += P[j][i];
 		}
 		return ;
 	}
@@ -67,15 +79,13 @@ void solve(vector<vector<double>>& RM, vector<vector<double>>& P){
 	for(int r=3*N;r<4*N;r++){
 		for(int k1=0;k1<4;k1++){
 			for(int c=0;c<N;c++){
-				next = r; cur = c;
-				if(len[cur]+k1==4) M[r][(k1+1)*c] = RM[cur][next];
+				next = r-3*N; cur = c;	//Got wrong here
+				if(len[cur]+k1==4) M[r][k1*N+c] = RM[cur][next];	//Got wrong index here
 			}
 		}
 	}	//M initialize
-	printV(P);printV(M);
 	R = pow(K-3, M);
-	P = multi(R, P);
-	printV(R);printV(P);
+	P = nMulti(R, P);//P needs to be nomalized
 
 	for(int i=0;i<N;i++){
 		for(int j=2;j>=0&&len[i]>3-j;j--)P[3][i] += P[j][i];
