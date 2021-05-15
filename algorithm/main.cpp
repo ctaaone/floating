@@ -1,32 +1,43 @@
 #include <iostream>
 #include <vector>
+#include <cmath>
+#include <utility>
 #include <algorithm>
 
 using namespace std;
 
 int N;
 
-int max(int a, int b){
-	return a>b?a:b;
-}
+int solve(vector<pair<double,pair<double,double>>> arr){
+	sort(arr.begin(), arr.end(),greater<pair<double,pair<double,double>>>());
+	vector<pair<double,double>> rIndex(N);
+	
+	double theta1, theta2;
+	for(int i=0;i<N;i++){ //Radian calculation
+		if(arr[i].first >= 16) return 1; //Whole covering exception
+		
+		theta1 = acos(arr[i].second.second / -8);
+		if(asin(arr[i].second.first/8)<0)theta1 = 2*M_PI - theta1;
+		theta2 = 2*asin(arr[i].first / 16);
 
-int solve(vector<int> arr){
-	int ret = 0;
-	for(int i=1;i<N;i++){
-		sort(arr.begin(), arr.end(), greater<int>());
-		arr[arr.size()-2] += arr.back();
-		arr.pop_back();
-		ret+=arr.back();		
+		rIndex[i].first = theta1 - theta2 + (theta1-theta2<0?2*M_PI:0);//A starting point
+		rIndex[i].second = theta1 + theta2 - (theta1+theta2>2*M_PI?2*M_PI:0);//A ending point
 	}
-	return ret;
+	
+	double iStart, cStart, cEnd, tStart, tEnd, max;int count = 1;
+	for(int i=0;i<N;i++){  //Total iteration
+		
+	}
+	return -1; //If fail
 }
 
 int main(){
 	int T;cin>>T;
 	while(T--){
-		cin>>N;vector<int> arr(N);
-		for(int i=0;i<N;i++)cin>>arr[i];
-		cout<<solve(arr)<<endl;
-	}
-	return 0;
+		cin>>N;vector<pair<double, pair<double,double>>> arr(N);
+		for(int i=0;i<N;i++)scanf("%lf%lf%lf",&arr[i].second.first,&arr[i].second.second, &arr[i].first);
+		int temp = solve(arr);
+		if(temp==-1)cout<<"IMPOSSIBLE"<<endl;
+		else cout<<temp<<endl;
+	}return 0;
 }
