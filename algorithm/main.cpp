@@ -15,13 +15,9 @@ int isTarget(double cStart, double cEnd, double tStart, double tEnd){
 		}
 	}
 	else{
-		if(tStart<=cEnd || tStart>cStart){
-			if(tStart<tEnd){
-				if(!(tStart<tEnd&&tEnd<=cEnd))return 1;
-			}else if(cEnd<tEnd){
-				return 1;
-			}
-		}
+		if(tStart<=cEnd&&tStart<tEnd&&cEnd<tEnd){
+			return 1;
+		}else if(tStart>cStart&&tStart>tEnd&&cEnd<tEnd)return 1;
 	}
 	return 0;
 }
@@ -45,7 +41,7 @@ int solve(vector<pair<double,pair<double,double>>> arr){
 		//printf("##%lf %lf %lf %lf %lf %lf\n",arr[i].second.first, arr[i].second.second, rIndex[i].first/M_PI, rIndex[i].second/M_PI, theta1/M_PI, theta2/M_PI);
 	}
 	
-	double tR, cStart, cEnd, tStart, tEnd, dTheta, max, mS, mE, INF = 2e10;int count;
+	double tR, cStart, cEnd, tStart, tEnd, max, mS, mE, INF = 2e10;int count;
 	for(int i=0;i<N;i++){  //Total iteration
 		count = 1; cStart = rIndex[i].first; cEnd = rIndex[i].second; tR = cEnd - cStart + (cStart>cEnd?2*M_PI:0);
 		while(1){
@@ -55,18 +51,18 @@ int solve(vector<pair<double,pair<double,double>>> arr){
 				if(i==j)continue;
 				tStart = rIndex[j].first; tEnd = rIndex[j].second;
 				if(isTarget(cStart,cEnd,tStart,tEnd)){
-					if(max == INF) {max = tEnd; findFlag = 1; dTheta = tEnd - cEnd + (tEnd<cEnd?2*M_PI:0); mS = tStart; mE = tEnd;}
+					if(max == INF) {max = tEnd; findFlag = 1; mS = tStart; mE = tEnd;}
 					else if(cEnd<max){
-						if(tEnd > max || tEnd < cEnd) {max = tEnd; findFlag = 1; dTheta = tEnd - cEnd + (tEnd<cEnd?2*M_PI:0); mS = tStart; mE = tEnd;}
+						if(tEnd > max || tEnd < cEnd) {max = tEnd; findFlag = 1; mS = tStart; mE = tEnd;}
 					}else{
-						if(tEnd > max && tEnd < cEnd) {max = tEnd; findFlag = 1; dTheta = tEnd - cEnd + (tEnd<cEnd?2*M_PI:0); mS = tStart; mE = tEnd;}
+						if(tEnd > max && tEnd < cEnd) {max = tEnd; findFlag = 1; mS = tStart; mE = tEnd;}
 					}
 				}
 			}
 			if(!findFlag) break;
 			count++;
-			tR += dTheta;
-			printf("##%lf %lf %lf %lf %lf\n", tR/M_PI, mS/M_PI, mE/M_PI, cStart/M_PI, cEnd/M_PI);
+			tR += mE - cEnd + (mE<cEnd?2*M_PI:0);
+			//printf("##%lf %lf %lf %lf %lf\n", tR/M_PI, mS/M_PI, mE/M_PI, cStart/M_PI, cEnd/M_PI);
 			cStart = mS; cEnd = mE;
 			if(tR >= 2*M_PI) return count;
 		}		
@@ -75,6 +71,8 @@ int solve(vector<pair<double,pair<double,double>>> arr){
 }
 
 int main(){
+	/*printf("%d",isTarget(1.529255*M_PI, 0.270745*M_PI, 1.560777*M_PI, 1.720349*M_PI));
+	return 0;*/
 	int T;cin>>T;
 	while(T--){
 		cin>>N;vector<pair<double, pair<double,double>>> arr(N);
