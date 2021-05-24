@@ -11,15 +11,22 @@ int N;
 int min(int a, int b){return a<b?a:b;}
 
 int lsolve(vector<pair<double, double>>& rad, double S, double E){
-	int count = 0, cFlag = 0;
-	for(int i=0;i<N;i++){
-		double start = rad[i].second, end = rad[i].first;
-		if((start<=S||start>E)){
-			if(end>=E||
+	double cS = S, mE = S;
+	int index = 0, count=1, cFlag;
+	
+	while(cS<E){
+		cFlag = 0;
+		for(;index<N&&rad[index].first<=cS;index++){
+			double start = rad[index].first, end = rad[index].second;
+			if(mE<end || start>end){
+				mE=end;cFlag=1;
+				if(start>end)break;
+			}
 		}
+		if(!cFlag)return 2e9;
+		cS = mE; count++;
 	}
-	if(!cFlag)return 2e9;
-	return count==0?(int)2e9:count;
+	return count;
 }
 
 int csolve(vector<pair<double, pair<double, double>>>& par){
@@ -30,16 +37,18 @@ int csolve(vector<pair<double, pair<double, double>>>& par){
 		double x = par[i].second.first, y = par[i].second.second, r = par[i].first;
 		theta1 = atan2(y, x);
 		theta2 = 2*asin(r/16);
-		rad[i].second = theta1-theta2; rad[i].first = theta1+theta2;
+		rad[i].first = theta1-theta2; rad[i].second = theta1+theta2;
 	}
-	sort(rad.begin(), rad.end(), greater<pair<double, double>>());
-	for(int i=0;i<N;i++){nrad[i].first = fmod(rad[i].first + 3*M_PI, 2*M_PI); nrad[i].second = fmod(rad[i].second + M_PI, 2*M_PI);}//Revese from here
+	sort(rad.begin(), rad.end(), less<pair<double, double>>());
+	for(int i=0;i<N;i++){nrad[i].first = fmod(rad[i].first + M_PI, 2*M_PI); nrad[i].second = fmod(rad[i].second + 3*M_PI, 2*M_PI);}
 
 	int ret = (int)2e9;
 	for(int i=0;i<N;i++){
-		double start = rad[i].second, end = rad[i].first;
+		double start = rad[i].first, end = rad[i].second;
 		if(start<=0&&end>=0){
-			ret = min(ret, 1 + lsolve(nrad, nrad[i].first, nrad[i].second));
+			int temp = lsolve(nrad, nrad[i].second, nrad[i].first);
+			cout<<temp<<endl;
+			ret = min(ret, 1 + temp);
 		}
 	}
 	return ret;
