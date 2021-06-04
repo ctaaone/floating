@@ -75,32 +75,41 @@ int getNumber(char B[][10],int r,int c,char ch){
 		}
 	}return ret;
 }
-void solve(int num){
-	int bn = getNumber(board, H, W, '.');
-	if(bn/pN+num <= MAX)return;
+void print(int pr, int py, int px){
 	int r=R,c=C;
-	for(int ro=0;ro<4;ro++){
-		if(ro>1){r=C;c=R;}
-		for(int y=0;y<=H-r;y++){
-			for(int x=0;x<=W-c;x++){
-				if(check(y,x,ro)){
-					if(num+1>MAX)MAX = num+1;
-					set(y,x,ro);
-					solve(num+1);
-					set(y,x,ro);
-				}
-			}
-		}
-	}
-}
-void pr(){
-	int r=R,c=C;
-	for(int ro=0;ro<4;ro++){
+	/*for(int ro=0;ro<4;ro++){
 		if(ro>1){r=C;c=R;}
 		for(int y=0;y<r;y++){
 			for(int x=0;x<c;x++){
 				printf("|\t%c\t|",P[ro][y][x]);
 			}cout<<endl;
+		}
+	}*/cout<<"%%%%%%%%"<<endl;
+	printf("%d %d %d\n",pr,py,px);
+	for(int y=0;y<H;y++){
+		for(int x=0;x<W;x++){
+			printf("%c",board[y][x]);
+		}printf("\n");
+	}
+}
+void solve(int num, int bN, int pr, int py, int px){
+	if(bN/pN + num <= MAX)return;
+	if(bN<pN)return;
+	int r=R,c=C;
+	int y,x;
+	for(int ro=pr;ro<4;ro++){
+		if(ro>1){r=C;c=R;}
+		if(ro==pr)y=py;else y=0;
+		for(;y<=H-r;y++){
+			if(y==py)x=px; else x=0;
+			for(;x<=W-c;x++){
+				if(check(y,x,ro)){
+					if(num+1>MAX)MAX = num+1;
+					set(y,x,ro);
+					solve(num+1, bN - pN,ro,y,x);
+					set(y,x,ro);
+				}
+			}
 		}
 	}
 }
@@ -112,7 +121,7 @@ int main(){
 		for(int i=0;i<H;i++)scanf("%s",board[i]);
 		for(int i=0;i<R;i++)scanf("%s",piece[i]);
 		pN = getNumber(piece, R, C, '#');
-		piece_opti();solve(0);
+		piece_opti();solve(0,getNumber(board, H, W, '.'),0,0,0);
 		cout<<MAX<<endl;
 	}
 	return 0;
