@@ -50,6 +50,7 @@ int check(int Y, int X, int ro){
 	if(ro>1){r=C;c=R;}
 	for(int y=0;y<r;y++){
 		for(int x=0;x<c;x++){
+			if(y+Y>=H||x+X>=W)return 0;
 			if(P[ro][y][x]=='#'&&board[y+Y][x+X]=='#')return 0;
 		}
 	}
@@ -92,21 +93,24 @@ void print(int pr, int py, int px){
 		}printf("\n");
 	}
 }
-void solve(int num, int bN, int pr, int py, int px){
-	if(bN/pN + num <= MAX)return;
+void solve(int num, int bN, int py, int px){
+	if(bN/pN + num <= MAX){return;}
 	if(bN<pN)return;
 	int r=R,c=C;
-	int y,x;
-	for(int ro=pr;ro<4;ro++){
-		if(ro>1){r=C;c=R;}
-		if(ro==pr)y=py;else y=0;
-		for(;y<=H-r;y++){
-			if(y==py)x=px; else x=0;
-			for(;x<=W-c;x++){
+	int minl = r<c?r:c;
+	for(int y=py;y<=H-minl;y++){
+		int x;
+		if(y==py)x=px;else x=0;
+		for(;x<=W-minl;x++){
+			for(int ro=0;ro<5;ro++){
+				if(ro==4){
+					solve(num, bN, y, x + 1);
+					break;
+				}
 				if(check(y,x,ro)){
 					if(num+1>MAX)MAX = num+1;
 					set(y,x,ro);
-					solve(num+1, bN - pN,ro,y,x);
+					solve(num+1, bN - pN,y,x + 1);
 					set(y,x,ro);
 				}
 			}
@@ -121,7 +125,7 @@ int main(){
 		for(int i=0;i<H;i++)scanf("%s",board[i]);
 		for(int i=0;i<R;i++)scanf("%s",piece[i]);
 		pN = getNumber(piece, R, C, '#');
-		piece_opti();solve(0,getNumber(board, H, W, '.'),0,0,0);
+		piece_opti();solve(0,getNumber(board, H, W, '.'),0,0);
 		cout<<MAX<<endl;
 	}
 	return 0;
