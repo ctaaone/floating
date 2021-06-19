@@ -1,90 +1,110 @@
 #include <iostream>
 #include <vector>
-#include <utility>
 #include <string>
+#include <algorithm>
+#include <utility>
 
-int max (int a, int b){
+using namespace std;
+
+int H,W,best,blocksize;
+vector<string> board;
+vector<vector<pair<int,int>>> blocks;
+
+int max(int a, int b){
 	return a>b?a:b;
 }
 
-vector<vector<pair<int, int>>> rotations;
-int blockSize;
-
-vector<string> rotate(const vector<string> & arr){
-	vector<string> ret(arr[0].size, string(arr.size(), ' '));
-	for(int i=0;i<arr.size();i++)
-		for(int j=0;j<arr[0].size();j++)
-			ret[j][arr.size()-i-1] = arr[i][j];
-	return ret;
-} //Rotating 90degree
-
-void generateRotations(vector<string> block){
-	rotations.clear();
-	rotations.resize(4);
-	for(int rot=0;rot<4;rot++){
-		int originY = -1, originX = -1; //Origin coor of the block
-		for(int i=0;i<block.size();i++)
-			for(int j=0;j<block[i].size();j++)
-				if(block[i][j] == '#'){
-					if(originY == -1){
-						originY = i;
-						originX = j;
-					}
-					rotations[rot].push_back(make_pair(i-originY, j-originX));
-				}
-		block = rotate(block);
-	}
-	sort(rotations.begin(), rotations.end());
-	rotations.erase(unique(rotations.begin(), rotations.end()));
-	blockSize = rotations[0].size;
-}
-
-int boardH, boardW;
-vector<string> board;
-
-int covered[10][10];
-int best;
-
-bool set(int y, int x, const vector<pair<int, int>>& block, int delta);
-
-void search(int place){
-	int y =-1,x=-1;
-	for(int i=0 ;i<boardH; i++){
-		for(int j=0 ;j<boardW; j++)
-			if(covered[i][j] == 0){
-				y = i;
-				x = j;break;
-			}
-	if(y != -1)break;
-	}
-	if(y == -1){best = max(best, placed);return;}
-
-	for(int i=0;i<rotations.size();i++){
-		if(set(y,x,rotations[i],1))
-			search(placed+1);
-		set(y,x,rotations[i],-1);
-	}
-	covered[y][x] = 1;
-	search(placed);
-	covered[y][x] = 0;
-}
-
-int solve(){
-	best = 0;
-	for(int i=0;i<boardH;i++){
-		for(int j=0;j<boardW;j++){
-			covered[i][j] = (board[i][j] == '#' ? 1:0);
+vector<string> rotate(vector<string> block){
+	vector<string> ret(block[0].size(), string(block.size(), ' '));
+	for(int i=0;i<block.size();i++){
+		for(int j=0;j<block[0].size();j++){
+			ret[j][block.size()-i-1] = block[i][j];
 		}
 	}
-	search(0);
-	return best;
+	return ret;
+}
+void mkBlocks(vector<string> block){
+	blocks.clear();blocks.resize(4);
+	for(int r=0;r<4;r++){
+		int originX = -1, originY = -1;
+		for(int i=0;i<block.size();i++){
+			for(int j=0;j<block[0].size();j++){
+				if(block[i][j] == '#'){
+					if(originY == -1){
+						originY = i;originX = j; 
+					}
+					blocks[r].push_back(make_pair(i-originY, j-originX));
+				}
+			}
+		}
+		block = rotate(block);
+	}
+	blocksize = blocks[0].size();
+	sort(blocks.begin(), blocks.end());
+	blocks.erase(unique(blocks.begin(), blocks.end()), blocks.end());
+}
+
+bool set(int y, int x, int r, int del){
+	if(del == 1){
+		for(int i=0;i<blocksize;i++){
+			int dy = blocks[r][i].first, dx = blocks[r][i].second;
+			if(!(y+dy>=0&&y+dy<H&&x+dx>=0&&x+dx<W))return false;
+			if(board[y+dy][x+dx] == '#')return false;
+		}
+		for(int i=0;i<blocksize;i++){
+			int dy = blocks[r][i].first, dx = blocks[r][i].second;
+			board[y+dy][x+dx] = '#';
+		}
+	}else{
+		for(int i=0;i<blocksize;i++){
+			int dy = blocks[r][i].first, dx = blocks[r][i].second;
+			board[y+dy][x+dx] = '.';
+		}
+	}
+	return true;
+}
+
+void solve(int Y, int X, int num, int last){ //Finds a place to place from left top
+	for(int i=Y;i<H;i++){
+		for(int j=(i==Y?X:0) ; j<W ; j++){
+			if(board[i][j]=='.'){
+				for(int r=0;r<blocks.size();r++){
+					if(last/blocksize<= best - num)return;
+					if(set(i,j,r,1)){
+						best = max(best, num + 1);
+						solve(i, j+1, num+1, last - blocksize);
+						set(i,j,r,0);
+					}
+				}
+				solve(i, j+1, num, last);
+				return;
+			}
+		}
+	}
+}
+void print(){
+	for(int r=0;r<blocks.size();r++){
+		printf("!%d\n",(int)blocks[r].size());
+		for(int i=0;i<blocksize;i++){
+			printf("##%d %d\n",blocks[r][i].first, blocks[r][i].second);
+		}
+	}
 }
 
 int main(){
-	int T;cin>>T;
+	int T; cin>>T;
+	vector<string> block;
+	int R,C;
 	while(T--){
-		cin>>boardH>>boardW;
-		
+		block.clear();board.clear();
+		cin>>H>>W>>R>>C; string temp;
+		for(int i=0;i<H;i++){cin>>temp;board.push_back(temp);}
+		for(int j=0;j<R;j++){cin>>temp;block.push_back(temp);}
+		mkBlocks(block);best=0;
+		int last=0;
+		for(int i=0;i<H;i++)for(int j=0;j<W;j++)if(board[i][j] == '.')last ++;
+		solve(0,0,0,last);
+		cout<<best<<endl;
 	}
 	return 0;
 }

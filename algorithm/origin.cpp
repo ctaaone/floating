@@ -94,7 +94,7 @@ void print(int pr, int py, int px){
 	}
 }
 void solve(int num, int bN, int py, int px){
-	if(bN/pN + num <= MAX){printf("YAS\n");return;}
+	if(bN/pN + num < MAX){printf("YAS\n");return;}
 	if(bN<pN)return;
 	int r=R,c=C;
 	int minl = r<c?r:c;
@@ -102,6 +102,7 @@ void solve(int num, int bN, int py, int px){
 		int x;
 		if(y==py)x=px;else x=0;
 		for(;x<=W-minl;x++){
+			if(board[y][x] == '.')
 			for(int ro=0;ro<5;ro++){
 				if(ro==4){
 					solve(num, bN, y, x + 1);
