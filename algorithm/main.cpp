@@ -1,110 +1,129 @@
 #include <iostream>
-#include <vector>
-#include <string>
-#include <algorithm>
-#include <utility>
 
 using namespace std;
 
-int H,W,best,blocksize;
-vector<string> board;
-vector<vector<pair<int,int>>> blocks;
 
-int max(int a, int b){
-	return a>b?a:b;
+int H,W,R,C,MAX,pN;
+char board[10][10], piece[10][10], P[4][10][10];
+
+void piece_opti(){
+	int xl,xr,yt,yb,flag=0;
+	for(int i=0;i<C;i++){
+		xl=i;
+		flag=0;
+		for(int j=0;j<R;j++)if(piece[j][i]=='#'){flag=1;break;}
+		if(flag)break;
+	}
+	for(int i=C-1;i>=0;i--){
+		xr=i;flag=0;
+		for(int j=0;j<R;j++)if(piece[j][i]=='#'){flag=1;break;}
+		if(flag)break;
+	}
+	for(int i=0;i<R;i++){
+		yt=i;flag=0;
+		for(int j=0;j<C;j++)if(piece[i][j]=='#'){flag=1;break;}
+		if(flag)break;
+	}
+	for(int i=R-1;i>=0;i--){
+		yb=i;flag=0;
+		for(int j=0;j<C;j++)if(piece[i][j]=='#'){flag=1;break;}
+		if(flag)break;
+	}
+	for(int i=0;i<=yb-yt;i++){
+		for(int j=0;j<=xr-xl;j++){
+			piece[i][j] = piece[i+yt][j+xl];
+		}
+	}
+	R=yb-yt+1;C=xr-xl+1;
+	for(int y=0;y<R;y++){
+		for(int x=0;x<C;x++){
+			P[0][y][x] = piece[y][x];
+			P[2][x][R-y-1] = piece[y][x];
+			P[1][R-y-1][C-x-1] = piece[y][x];
+			P[3][C-x-1][y] = piece[y][x];
+		}
+	}
 }
 
-vector<string> rotate(vector<string> block){
-	vector<string> ret(block[0].size(), string(block.size(), ' '));
-	for(int i=0;i<block.size();i++){
-		for(int j=0;j<block[0].size();j++){
-			ret[j][block.size()-i-1] = block[i][j];
+int check(int Y, int X, int ro){
+	int r=R,c=C;
+	if(ro>1){r=C;c=R;}
+	for(int y=0;y<r;y++){
+		for(int x=0;x<c;x++){
+			if(y+Y>=H||x+X>=W)return 0;
+			if(P[ro][y][x]=='#'&&board[y+Y][x+X]=='#')return 0;
+		}
+	}
+	return 1;
+}
+void set(int Y, int X, int ro){
+	int r=R,c=C;
+	if(ro>1){r=C;c=R;}
+	for(int y=0;y<r;y++){
+		for(int x=0;x<c;x++){
+			if(P[ro][y][x]=='#'){
+				if(board[y+Y][x+X]=='#')board[y+Y][x+X] = '.';
+				else board[y+Y][x+X] = '#';
+			}
+		}
+	}
+}
+int getNumber(char B[][10],int r,int c,char ch){
+	int ret = 0;
+	for(int y=0;y<r;y++){
+		for(int x=0;x<c;x++){
+			if(B[y][x]==ch)ret++;
+		}
+	}return ret;
+}
+int getB(int Y, int X){
+	int ret =0;
+	for(int i=Y;i<H;i++){
+		for(int j=(i==Y?X:0);j<W;j++){
+			if(board[i][j]=='.')ret ++;
 		}
 	}
 	return ret;
 }
-void mkBlocks(vector<string> block){
-	blocks.clear();blocks.resize(4);
-	for(int r=0;r<4;r++){
-		int originX = -1, originY = -1;
-		for(int i=0;i<block.size();i++){
-			for(int j=0;j<block[0].size();j++){
-				if(block[i][j] == '#'){
-					if(originY == -1){
-						originY = i;originX = j; 
-					}
-					blocks[r].push_back(make_pair(i-originY, j-originX));
-				}
-			}
-		}
-		block = rotate(block);
+void print(){
+	for(int i=0;i<H;i++){
+		for(int j=0;j<W;j++){
+			printf("%c", board[i][j]);
+		}printf("\n");
 	}
-	blocksize = blocks[0].size();
-	sort(blocks.begin(), blocks.end());
-	blocks.erase(unique(blocks.begin(), blocks.end()), blocks.end());
+	printf("\n");
 }
-
-bool set(int y, int x, int r, int del){
-	if(del == 1){
-		for(int i=0;i<blocksize;i++){
-			int dy = blocks[r][i].first, dx = blocks[r][i].second;
-			if(!(y+dy>=0&&y+dy<H&&x+dx>=0&&x+dx<W))return false;
-			if(board[y+dy][x+dx] == '#')return false;
-		}
-		for(int i=0;i<blocksize;i++){
-			int dy = blocks[r][i].first, dx = blocks[r][i].second;
-			board[y+dy][x+dx] = '#';
-		}
-	}else{
-		for(int i=0;i<blocksize;i++){
-			int dy = blocks[r][i].first, dx = blocks[r][i].second;
-			board[y+dy][x+dx] = '.';
-		}
-	}
-	return true;
-}
-
-void solve(int Y, int X, int num, int last){ //Finds a place to place from left top
-	for(int i=Y;i<H;i++){
-		for(int j=(i==Y?X:0) ; j<W ; j++){
-			if(board[i][j]=='.'){
-				for(int r=0;r<blocks.size();r++){
-					if(last/blocksize<= best - num)return;
-					if(set(i,j,r,1)){
-						best = max(best, num + 1);
-						solve(i, j+1, num+1, last - blocksize);
-						set(i,j,r,0);
+void solve(int num, int py, int px){
+	int bN= getB(py, px);
+	if(bN/pN + num <= MAX)return;
+	for(int y=py;y<H;y++){
+		for(int x=(y==py?px:0);x<W;x++){
+			if(board[y][x]=='.'){
+				for(int ro=0;ro<4;ro++){
+					if(check(y,x,ro)){
+						set(y,x,ro);
+						if(num+1 >MAX){print();MAX = num+1;}
+						solve(num+1,y,x + 1);
+						set(y,x,ro);
 					}
 				}
-				solve(i, j+1, num, last);
+				solve(num, y, x + 1);
 				return;
 			}
 		}
 	}
 }
-void print(){
-	for(int r=0;r<blocks.size();r++){
-		printf("!%d\n",(int)blocks[r].size());
-		for(int i=0;i<blocksize;i++){
-			printf("##%d %d\n",blocks[r][i].first, blocks[r][i].second);
-		}
-	}
-}
 
 int main(){
-	int T; cin>>T;
-	vector<string> block;
-	int R,C;
+	freopen("input.txt", "r", stdin);
+	int T;cin>>T;
 	while(T--){
-		block.clear();board.clear();
-		cin>>H>>W>>R>>C; string temp;
-		for(int i=0;i<H;i++){cin>>temp;board.push_back(temp);}
-		for(int j=0;j<R;j++){cin>>temp;block.push_back(temp);}
-		mkBlocks(block);best=0;
-		int last=0;
-		for(int i=0;i<H;i++)for(int j=0;j<W;j++)if(board[i][j] == '.')last ++;
-		solve(0,0,0,last);
-		cout<<best<<endl;
+		cin>>H>>W>>R>>C;MAX=0;
+		for(int i=0;i<H;i++)scanf("%s",board[i]);
+		for(int i=0;i<R;i++)scanf("%s",piece[i]);
+		pN = getNumber(piece, R, C, '#');
+		piece_opti();solve(0,0,0);
+		cout<<MAX<<endl;
 	}
 	return 0;
 }
