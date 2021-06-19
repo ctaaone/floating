@@ -3,6 +3,10 @@
 #include <utility>
 #include <string>
 
+int max (int a, int b){
+	return a>b?a:b;
+}
+
 vector<vector<pair<int, int>>> rotations;
 int blockSize;
 
@@ -33,4 +37,54 @@ void generateRotations(vector<string> block){
 	sort(rotations.begin(), rotations.end());
 	rotations.erase(unique(rotations.begin(), rotations.end()));
 	blockSize = rotations[0].size;
+}
+
+int boardH, boardW;
+vector<string> board;
+
+int covered[10][10];
+int best;
+
+bool set(int y, int x, const vector<pair<int, int>>& block, int delta);
+
+void search(int place){
+	int y =-1,x=-1;
+	for(int i=0 ;i<boardH; i++){
+		for(int j=0 ;j<boardW; j++)
+			if(covered[i][j] == 0){
+				y = i;
+				x = j;break;
+			}
+	if(y != -1)break;
+	}
+	if(y == -1){best = max(best, placed);return;}
+
+	for(int i=0;i<rotations.size();i++){
+		if(set(y,x,rotations[i],1))
+			search(placed+1);
+		set(y,x,rotations[i],-1);
+	}
+	covered[y][x] = 1;
+	search(placed);
+	covered[y][x] = 0;
+}
+
+int solve(){
+	best = 0;
+	for(int i=0;i<boardH;i++){
+		for(int j=0;j<boardW;j++){
+			covered[i][j] = (board[i][j] == '#' ? 1:0);
+		}
+	}
+	search(0);
+	return best;
+}
+
+int main(){
+	int T;cin>>T;
+	while(T--){
+		cin>>boardH>>boardW;
+		
+	}
+	return 0;
 }
