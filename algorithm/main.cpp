@@ -1,129 +1,93 @@
 #include <iostream>
+#include <vector>
+#include <string>
 
 using namespace std;
 
+int N, M, best;
+vector<string> member;
+vector<vector<string>> food;
+vector<vector<int>> edible;
 
-int H,W,R,C,MAX,pN;
-char board[10][10], piece[10][10], P[4][10][10];
-
-void piece_opti(){
-	int xl,xr,yt,yb,flag=0;
-	for(int i=0;i<C;i++){
-		xl=i;
-		flag=0;
-		for(int j=0;j<R;j++)if(piece[j][i]=='#'){flag=1;break;}
-		if(flag)break;
-	}
-	for(int i=C-1;i>=0;i--){
-		xr=i;flag=0;
-		for(int j=0;j<R;j++)if(piece[j][i]=='#'){flag=1;break;}
-		if(flag)break;
-	}
-	for(int i=0;i<R;i++){
-		yt=i;flag=0;
-		for(int j=0;j<C;j++)if(piece[i][j]=='#'){flag=1;break;}
-		if(flag)break;
-	}
-	for(int i=R-1;i>=0;i--){
-		yb=i;flag=0;
-		for(int j=0;j<C;j++)if(piece[i][j]=='#'){flag=1;break;}
-		if(flag)break;
-	}
-	for(int i=0;i<=yb-yt;i++){
-		for(int j=0;j<=xr-xl;j++){
-			piece[i][j] = piece[i+yt][j+xl];
-		}
-	}
-	R=yb-yt+1;C=xr-xl+1;
-	for(int y=0;y<R;y++){
-		for(int x=0;x<C;x++){
-			P[0][y][x] = piece[y][x];
-			P[2][x][R-y-1] = piece[y][x];
-			P[1][R-y-1][C-x-1] = piece[y][x];
-			P[3][C-x-1][y] = piece[y][x];
-		}
-	}
+bool isOver(vector<int> canEat){
+	for(int i=0;i<canEat.size();i++)
+		if(canEat[i] == 0) return false;
+	return true;
 }
 
-int check(int Y, int X, int ro){
-	int r=R,c=C;
-	if(ro>1){r=C;c=R;}
-	for(int y=0;y<r;y++){
-		for(int x=0;x<c;x++){
-			if(y+Y>=H||x+X>=W)return 0;
-			if(P[ro][y][x]=='#'&&board[y+Y][x+X]=='#')return 0;
-		}
-	}
-	return 1;
-}
-void set(int Y, int X, int ro){
-	int r=R,c=C;
-	if(ro>1){r=C;c=R;}
-	for(int y=0;y<r;y++){
-		for(int x=0;x<c;x++){
-			if(P[ro][y][x]=='#'){
-				if(board[y+Y][x+X]=='#')board[y+Y][x+X] = '.';
-				else board[y+Y][x+X] = '#';
+vector<int> cook(int foodIndex, vector<int> canEat){
+	vector<string> list = food[foodIndex];
+
+	for(int i=0;i<list.size();i++){
+		for(int j=0;j<member.size();j++)
+			if(member[j] == list[i]){
+				canEat[j] = 1; break;
 			}
-		}
 	}
+	return canEat;
 }
-int getNumber(char B[][10],int r,int c,char ch){
-	int ret = 0;
-	for(int y=0;y<r;y++){
-		for(int x=0;x<c;x++){
-			if(B[y][x]==ch)ret++;
-		}
-	}return ret;
-}
-int getB(int Y, int X){
-	int ret =0;
-	for(int i=Y;i<H;i++){
-		for(int j=(i==Y?X:0);j<W;j++){
-			if(board[i][j]=='.')ret ++;
-		}
-	}
-	return ret;
-}
-void print(){
-	for(int i=0;i<H;i++){
-		for(int j=0;j<W;j++){
-			printf("%c", board[i][j]);
-		}printf("\n");
-	}
-	printf("\n");
-}
-void solve(int num, int py, int px){
-	int bN= getB(py, px);
-	if(bN/pN + num <= MAX)return;
-	for(int y=py;y<H;y++){
-		for(int x=(y==py?px:0);x<W;x++){
-			if(board[y][x]=='.'){
-				for(int ro=0;ro<4;ro++){
-					if(check(y,x,ro)){
-						set(y,x,ro);
-						if(num+1 >MAX){print();MAX = num+1;}
-						solve(num+1,y,x + 1);
-						set(y,x,ro);
-					}
+
+void calculEadible(){
+	edible.resize(member.size());
+	for(int i=0;i<food.size();i++){
+		vector<string> list = food[i];
+
+		for(int j=0;j<list.size();j++){
+			for(int l=0;l<member.size();l++){
+				if(member[l] == list[j]){
+					edible[l].push_back(i);
+					break;
 				}
-				solve(num, y, x + 1);
-				return;
 			}
 		}
 	}
+}
+
+int min(int a, int b){
+	return a>b?a:b;
+}
+
+void solve(int cur, int num, vector<int> canEat){
+	if(num >= best) return;
+	if(cur == member.size()) return;
+	if(isOver(canEat)){
+		best = num; return;
+	}
+	if(canEat[cur] == 1){solve(cur + 1, num, canEat);return;}
+	
+	vector<int> eatList = edible[cur];
+	for(int i=0; i < eatList.size(); i++)
+		solve(cur + 1, num + 1, cook(eatList[i], canEat));
+
 }
 
 int main(){
-	freopen("input.txt", "r", stdin);
-	int T;cin>>T;
+	//freopen("input.txt","r",stdin);
+	int T; cin>>T;
+	
 	while(T--){
-		cin>>H>>W>>R>>C;MAX=0;
-		for(int i=0;i<H;i++)scanf("%s",board[i]);
-		for(int i=0;i<R;i++)scanf("%s",piece[i]);
-		pN = getNumber(piece, R, C, '#');
-		piece_opti();solve(0,0,0);
-		cout<<MAX<<endl;
+		best = (int)2e9; member.clear(); for(int i=0;i<food.size();i++)food[i].clear(); food.clear();
+		for(int i=0;i<edible.size();i++)edible[i].clear(); edible.clear();
+		
+		cin>>N>>M;
+		for(int i=0;i<N;i++){
+			string temp;
+			cin>>temp; member.push_back(temp);
+		}
+		for(int i=0;i<M;i++){
+			int L; cin>>L;
+			vector<string> tempv;
+			string temp;
+			for(int l=0;l<L;l++){
+				cin>>temp; tempv.push_back(temp);
+			}
+			food.push_back(tempv);
+		}
+
+		calculEadible();
+		vector<int> canEat(member.size(), 0);
+		solve(0, 0, canEat);
+		cout<<best<<endl;
 	}
 	return 0;
 }
