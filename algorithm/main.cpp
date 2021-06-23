@@ -18,6 +18,9 @@ int N, Q;
 int min(int a, int b){
 	return a<b?a:b;
 }
+int max(int a, int b){
+	return a>b?a:b;
+}
 
 pair<int, int> getNextCoor(){
 	int minBlank = 2e9, nextHINT;
@@ -55,52 +58,68 @@ bool isOver(){
 }
 
 bool checkNum(int NUM, int y, int x){
-	int dy[] = {-1, 0, 1, 0}, dx[] = {0, 1, 0, -1}, overFlagH = 1, overFlagV = 1;
+	int dy[] = {-1, 0, 1, 0}, dx[] = {0, 1, 0, -1};
 	for(int dir = 0; dir<4 ; dir++){
 		int Y = y + dy[dir], X = x + dx[dir];
 		while(Y>=0 && Y<N && X>=0 && X<N && board[Y][X] != -1){
-			if(board[Y][X] == 0) {
-				if(dir%2 == 0) overFlagV = 0;
-				else overFlagH = 0;
-			}
 			if(board[Y][X] == NUM) return false;
 			Y += dy[dir]; X += dx[dir];
 		}
 	}
-
-	if(overFlagV == 1){
-		int sum = 0, curY = y - 1, curX = x;
-		while(board[curY][curX] != -1)curY--;
-		int hintSum = hintMap[curY][curX][1];
-		while(curY<N && board[curY][curX] != -1){
-			sum += (board[curY][curX] == 0?NUM:board[curY][curX]); curY ++ ;
-		}
-		if(sum != hintSum)return false;
-	}
-	if(overFlagH == 1){
-		int sum = 0, curY = y, curX = x - 1;
-		while(board[curY][curX] != -1)curX--;
-		int hintSum = hintMap[curY][curX][0];
-		while(curX<N && board[curY][curX] != -1){
-			sum += (board[curY][curX] == 0?NUM:board[curY][curX]); curX ++ ;
-		}
-		if(sum != hintSum){cout<<sum<<" "<<hintSum<<endl;return false;}
-	}
 	return true;
 }
 
+pair<int, int> getProperNum(int y, int x){
+	int blanknum[] = {1,1}, linesum[] = {0,0}, hintsum[2]; //0 H 1 V
+	int dy[] = {-1, 0, 1, 0}, dx[] = {0, 1, 0, -1};
+	for(int dir = 0; dir<4; dir++){
+		int Y = y + dy[dir], X = x + dx[dir];
+		while(Y>=0 && Y<N && X>=0 && X<N && board[Y][X] != -1){
+			if(board[Y][X] == 0) blanknum[(dir+1)%2]++;
+			else linesum[(dir+1)%2] += board[Y][X];
+			Y+=dy[dir];X+=dx[dir];
+		}
+		if(dir == 0) hintsum[1] = hintMap[Y][X][1];
+		if(dir == 3) hintsum[0] = hintMap[Y][X][0];
+	}
+	for(int i=0;i<2;i++)
+		if(blanknum[i]==1) {
+			int ret = hintsum[i] - linesum[i];
+			if(ret<1||ret>9) return make_pair(1,0);
+			return make_pair(ret, ret+1);
+		}
+	int minR = 1;
+	for(int i=0;i<2;i++){
+		int temp = hintsum[i] - linesum[i];
+		if(temp/blanknum[i] > 9) return make_pair(1,0);
+		temp -= 9*(blanknum[i]-1);
+		minR = max(temp , minR);
+	}
+	return make_pair(minR, 10);
+}
+void print(){
+	for(int i=0;i<N;i++){
+			for(int j=0;j<N;j++){
+				printf("%d ",board[i][j]);
+			}
+			printf("\n");
+	}
+}
 
 bool solve(){
 	if(isOver()) return true;
 	int nextY, nextX; pair<int, int> nextCoor;
 	nextCoor = getNextCoor();
 	nextY = nextCoor.first; nextX = nextCoor.second;
-	for(int NUM = 1; NUM < 10 ; NUM++){
+	pair<int, int> pnum = getProperNum(nextY, nextX);
+	printf("##%d, %d\n", pnum.first, pnum.second);
+	print();
+	for(int NUM = pnum.first; NUM < pnum.second ; NUM++){
 		if(checkNum(NUM, nextY, nextX)){
 			board[nextY][nextX] = NUM;
-			if(solve()) {cout<<"#";return true;}
+			if(solve()) return true;
 			board[nextY][nextX] = 0;
-		}
+		}	
 	}
 	return false;
 }
