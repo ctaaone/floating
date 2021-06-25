@@ -2,8 +2,10 @@
 #include <vector>
 #include <string>
 #include <utility>
+#include <memory.h>
 
 using namespace std;
+
 
 typedef struct HINTSTRUCT{
 	int y; int x; int dir; int sum;
@@ -15,6 +17,14 @@ int hintMap[20][20][2];
 
 int N, Q;
 
+
+inline int getSum(int i){return hintMap[HINT[i].y][HINT[i].x][HINT[i].dir]&0x000000FF;}
+inline int getCur(int i){return (hintMap[HINT[i].y][HINT[i].x][HINT[i].dir]&0x0000FF00)>>8;}
+inline int getLeft(int i){return (hintMap[HINT[i].y][HINT[i].x][HINT[i].dir]&0x00FF0000)>>16;}
+inline int setSum(int i, char value){hintMap[HINT[i].y][HINT[i].x][HINT[i].dir]&=0xFFFFFF00;hintMap[HINT[i].y][HINT[i].x][HINT[i].dir]|=(value);}
+inline int setCur(int i, char value){hintMap[HINT[i].y][HINT[i].x][HINT[i].dir]&=0xFFFF00FF;hintMap[HINT[i].y][HINT[i].x][HINT[i].dir]|=(value)<<8;}
+inline int setLeft(int i, char value){hintMap[HINT[i].y][HINT[i].x][HINT[i].dir]&=0xFF00FFFF;hintMap[HINT[i].y][HINT[i].x][HINT[i].dir]|=(value)<<16;}
+
 int min(int a, int b){
 	return a<b?a:b;
 }
@@ -24,22 +34,12 @@ int max(int a, int b){
 
 pair<int, int> getNextCoor(){
 	int minBlank = 2e9, nextHINT;
-	for(int i=0;i < HINT.size(); i++){
-		int num = 0, Y = HINT[i].y, X = HINT[i].x;
-		if(HINT[i].dir == 1) Y++;
-		else X++;
-		
-		while(Y<N && X<N && board[Y][X] != -1){
-			if(board[Y][X] == 0)num++;
-			if(HINT[i].dir == 1) Y++;
-			else X++;
-		}
-
-		if(num != 0 && num < minBlank){
-			minBlank = num;
+	for(int i=0;i < HINT.size(); i++)
+		if(getLeft(i)>0 && getLeft(i) < minBlank){
+			minBlank = getLeft(i);
 			nextHINT = i;
 		}
-	}
+	
 	int Y = HINT[nextHINT].y, X = HINT[nextHINT].x, dir = HINT[nextHINT].dir;
 	if(dir == 1) Y++;
 	else X++;
@@ -51,9 +51,8 @@ pair<int, int> getNextCoor(){
 }
 
 bool isOver(){
-	for(int i=0; i<N; i++)
-		for(int j=0; j<N; j++)
-			if(board[i][j] == 0)return false;
+	for(int i=0; i<HINT.size(); i++)
+		if(getLeft(i) > 0) return false;
 	return true;
 }
 
@@ -70,29 +69,19 @@ bool checkNum(int NUM, int y, int x){
 }
 
 pair<int, int> getProperNum(int y, int x){
-	int blanknum[] = {1,1}, linesum[] = {0,0}, hintsum[2]; //0 H 1 V
-	int dy[] = {-1, 0, 1, 0}, dx[] = {0, 1, 0, -1};
-	for(int dir = 0; dir<4; dir++){
-		int Y = y + dy[dir], X = x + dx[dir];
-		while(Y>=0 && Y<N && X>=0 && X<N && board[Y][X] != -1){
-			if(board[Y][X] == 0) blanknum[(dir+1)%2]++;
-			else linesum[(dir+1)%2] += board[Y][X];
-			Y+=dy[dir];X+=dx[dir];
-		}
-		if(dir == 0) hintsum[1] = hintMap[Y][X][1];
-		if(dir == 3) hintsum[0] = hintMap[Y][X][0];
-	}
+	int hintnum[2] = {hintMap[y][x][0], hintMap[y][x][1]};
 	for(int i=0;i<2;i++)
-		if(blanknum[i]==1) {
-			int ret = hintsum[i] - linesum[i];
+		if(getLeft(hintnum[i]) == 1) {
+			int ret = getSum(hintnum[i]) - getCur(hintnum[i]);
 			if(ret<1||ret>9) return make_pair(1,0);
 			return make_pair(ret, ret+1);
 		}
+
 	int minR = 1;
 	for(int i=0;i<2;i++){
-		int temp = hintsum[i] - linesum[i];
-		if(temp/blanknum[i] > 9) return make_pair(1,0);
-		temp -= 9*(blanknum[i]-1);
+		int temp = getSum(hintnum[i]) - getCur(hintnum[i]);
+		if(temp/getLeft(hintnum[i]) > 9) return make_pair(1,0);
+		temp -= 9*(getLeft(hintnum[i]) - 1);
 		minR = max(temp , minR);
 	}
 	return make_pair(minR, 10);
@@ -112,21 +101,42 @@ bool solve(){
 	nextCoor = getNextCoor();
 	nextY = nextCoor.first; nextX = nextCoor.second;
 	pair<int, int> pnum = getProperNum(nextY, nextX);
-	printf("##%d, %d\n", pnum.first, pnum.second);
-	print();
+	//printf("##%d, %d\n", pnum.first, pnum.second);
+	//print();
 	for(int NUM = pnum.first; NUM < pnum.second ; NUM++){
 		if(checkNum(NUM, nextY, nextX)){
 			board[nextY][nextX] = NUM;
+			for(int dir=0;dir<2;dir++){
+				int hintnum = hintMap[nextY][nextX][dir];
+				setCur(hintnum, getCur(hintnum) + NUM);
+				setLeft(hintnum, getLeft(hintnum) - 1);
+			}
+			
 			if(solve()) return true;
+
 			board[nextY][nextX] = 0;
+			for(int dir=0;dir<2;dir++){
+				int hintnum = hintMap[nextY][nextX][dir];
+				setCur(hintnum, getCur(hintnum) - NUM);
+				setLeft(hintnum, getLeft(hintnum) + 1);
+			}
 		}	
 	}
 	return false;
 }
 
 void setHintMap(){
-	for(int i = 0; i<HINT.size() ; i++)
-		hintMap[HINT[i].y][HINT[i].x][HINT[i].dir] = HINT[i].sum;
+	memset(hintMap, 0, sizeof(hintMap));
+	for(int i = 0; i<HINT.size() ; i++){
+		int Y = HINT[i].y, X = HINT[i].x, dir = HINT[i].dir, sum = HINT[i].sum, left = 0;
+		setSum(i, sum); setCur(i, 0);
+		if(dir)Y++;else X++;
+		while(Y<N&&X<N&&board[Y][X] != -1){
+			hintMap[Y][X][dir] = i;
+			left++; if(dir)Y++;else X++;
+		}
+	}
+
 }
 
 int main(){
