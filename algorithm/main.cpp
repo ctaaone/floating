@@ -1,48 +1,27 @@
 #include <iostream>
+#include <memory.h>
 #include <vector>
+#include <utility>
 #include <cmath>
 
 using namespace std;
 
 
-int N, M;
-vector<double> plist;
+vector<pair<double, double>> camp;
+int N;
 
-bool can(double dist){
-	int count = 1, cur = 0;
-	for(int j=1;j<M;j++){
-		if(plist[j] - plist[cur] >= dist){
-			count ++; cur = j;
-		}
-	}
-	if(count >= N) return true;
-	return false;
-}
-
-
-double solve(){ //240 && .2
-	double start = 0, end = 240, half = (start + end)/2;
-	while(1){
-		half = (start + end) / 2;
-		if(half - start < 0.0001) return half;
-		if(can(half)){
-			start = half;
-		}else{
-			end = half;
-		}
-	}
-}
+void solve();
 
 int main(){
-	//freopen("input.txt", "r",stdin);
+	freopen("input.txt", "r", stdin);
 	int T;cin>>T;
 	while(T--){
-		plist.clear();
-		cin>>N>>M;
-		for(int i=0;i<M;i++){
-			double temp;scanf("%lf",&temp);plist.push_back(temp);
+		cin>>N;camp.clear();
+		for(int i=0;i<N;i++){
+			double x, y;
+			scanf("%lf%lf",&x, &y); camp.push_back(make_pair(x,y));
 		}
-		printf("%.2lf\n",round((solve()*100))/100);
+
 	}
 	return 0;
 }
