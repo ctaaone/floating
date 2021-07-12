@@ -1,54 +1,50 @@
-#include <iostream>
-#include <memory.h>
 #include <vector>
-#include <utility>
-#include <cmath>
+#include <iostream>
 
 using namespace std;
 
 
-vector<pair<double, double>> camp;
-int N;
+int N, K, maxL;
+vector<int> L, M, G; // Distance, Length, Interval
 
-bool isConnect(double length){
-	int queue[101], next = 1, cur = 0, visited[100];
-	memset(visited, 0, sizeof(visited)); visited[0] = 1; queue[0] = 0;
-	while(next != cur){
-		int curnum = queue[cur];
-		for(int j=0;j<N;j++){
-			double x1 = camp[curnum].first, x2 = camp[j].first, y1 = camp[curnum].second, y2 = camp[j].second;
-			if(visited[j] == 0&&length*length >= (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2)){
-				queue[next++] = j; visited[j] = 1;
-			}
-		}
-		cur++;
-	}
-	if(cur == N) return true;
-	return false;
+int max(int a, int b){
+	return a>b?a:b;
 }
 
-double solve(){
-	double start = 0, end = 1000, half = (start + end)/2;
-	while(half - start > 0.00001){
-		if(isConnect(half)){
-			end = half ; half = (start + end)/2;
+bool isRight(int d){
+	int sum = 0;
+	for(int i=0;i<N;i++){
+		int start = L[i] - M[i], end = L[i];
+		if(start <= K && K <= end)
+			sum += (K-start) / G[i] + 1;
+	}
+	return sum >= K;
+}
+
+int solve(){
+	int s = 0, e = maxL, h = (s + e)/2;
+	while(s < e){
+		if(isRight(h)){
+			e = h; h = (s + e)/2;
 		}else{
-			start = half; half = (start + end)/2;
+			s = h; h = (s + e)/2; 
 		}
 	}
-	return half;
+	return h;
 }
 
 int main(){
-	//freopen("input.txt", "r", stdin);
 	int T;cin>>T;
 	while(T--){
-		cin>>N;camp.clear();
+		L.clear(); M.clear(); G.clear(); maxL = 0;
+		cin>>N>>K;
 		for(int i=0;i<N;i++){
-			double x, y;
-			scanf("%lf%lf",&x, &y); camp.push_back(make_pair(x,y));
+			int tL, tM, tG;
+			scanf("%d%d%d", &tL, &tM, &tG);
+			maxL = max(maxL, tL);
+			L.push_back(tL); M.push_back(tM); G.push_back(tG);
 		}
-		printf("%.2lf\n",solve());
+		cout<<solve()<<endl;
 	}
 	return 0;
 }
